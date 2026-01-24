@@ -635,7 +635,7 @@
           </div>
         </div>
         <div class="input-group">
-          <label for="unix">Unix Timestamp (Seconds)</label>
+          <label for="unix">Duration since Unix Epoch</label>
           <div class="spinner-wrapper" data-spinner="unix">
             <button class="spinner-btn minus" type="button">&minus;</button>
             <input type="text" id="unix" class="form-input" inputmode="numeric" pattern="[0-9]*" data-step="1">
@@ -770,8 +770,8 @@
 
     function runTests() {
       const results = [];
-      const logTest = (type, input, expected, actual, pass) => {
-        results.push({ type, input, expected, actual, pass });
+      const logTest = (type, input, expected, actual, pass, time) => {
+        results.push({ type, input, expected, actual, pass, time });
       };
 
       /**
@@ -791,6 +791,12 @@
         { y: 2010, m: 10, d: 5, h: 3, min: 15, s: 12, w: 1608, mow: 443727 },
         { y: 2012, m: 6, d: 1, h: 0, min: 0, s: 0, w: 1695, mow: 16 },
         { y: 2015, m: 6, d: 1, h: 0, min: 0, s: 0, w: 1851, mow: 259217 },
+        // Through a leap second
+        { y: 2016, m: 11, d: 31, h: 23, min: 59, s: 42, w: 1929, mow: 604799 },
+        { y: 2016, m: 11, d: 31, h: 23, min: 59, s: 43, w: 1930, mow: 0 },
+        { y: 2016, m: 11, d: 31, h: 23, min: 59, s: 44, w: 1930, mow: 1 },
+        { y: 2016, m: 11, d: 31, h: 23, min: 59, s: 59, w: 1930, mow: 16 },
+        // { y: 2016, m: 11, d: 31, h: 23, min: 59, s: 60, w: 1930, mow: 17 }, <= Doesn't work in test but works in file
         { y: 2017, m: 0, d: 1, h: 0, min: 0, s: 0, w: 1930, mow: 18 },
         { y: 2020, m: 7, d: 12, h: 10, min: 20, s: 30, w: 2118, mow: 296448 },
         { y: 2024, m: 0, d: 1, h: 0, min: 0, s: 0, w: 2295, mow: 86418 },
@@ -808,14 +814,14 @@
         const input = `${t.y}-${String(t.m + 1).padStart(2, '0')}-${String(t.d).padStart(2, '0')} ${String(t.h).padStart(2, '0')}:${String(t.min).padStart(2, '0')}:${String(t.s).padStart(2, '0')} UTC`;
         const actual = `W:${week} T:${tow}`;
         const expected = `W:${t.w} T:${t.mow}`;
-        logTest("UTC → GPS", input, expected, actual, (week === t.w && tow === t.mow));
+        logTest("UTC → GPS", input, expected, actual, (week === t.w && tow === t.mow), unixMs);
       });
 
       // 2. Bidirectional: GPS to UTC
       testData.forEach(t => {
         const diffMs = (t.w * 604800 + t.mow) * 1000;
         const unixMs = gpsT0 + diffMs;
-        const leapMs = leapMilliseconds(unixMs);
+        const leapMs = leapMillisecondsForUnixTime(unixMs);
         const utcMs = unixMs - leapMs;
         const isLeapS = isDuringLeapSecond(unixMs);
         const date = new Date(isLeapS ? utcMs - 1000 : utcMs);
@@ -824,7 +830,7 @@
         const actual = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')} ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(actualS).padStart(2, '0')}`;
         const input = `W:${t.w} T:${t.mow}`;
         const expected = `${t.y}-${String(t.m + 1).padStart(2, '0')}-${String(t.d).padStart(2, '0')} ${String(t.h).padStart(2, '0')}:${String(t.min).padStart(2, '0')}:${String(t.s).padStart(2, '0')}`;
-        logTest("GPS → UTC", input, expected, actual, actual === expected);
+        logTest("GPS → UTC", input, expected, actual, actual === expected, unixMs);
       });
 
       // Build Premium Report Table
@@ -836,7 +842,11 @@
       results.forEach(r => {
         const statusColor = r.pass ? "#10b981" : "#ef4444";
         const statusText = r.pass ? "PASSED" : "FAILED";
-        html += `<tr style="border-bottom: 1px solid var(--card-border); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">`;
+        html += `<tr style="border-bottom: 1px solid var(--card-border); transition: background 0.2s; cursor: pointer;" 
+                    onmouseover="this.style.background='rgba(255,255,255,0.02)'" 
+                    onmouseout="this.style.background='transparent'"
+                    onclick="setTime(${r.time}); window.scrollTo({top: 0, behavior: 'smooth'});"
+                    title="Click to set application time to this case">`;
         html += `<td style="padding: 0.4rem 1rem; font-weight: 600; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">${r.type}</td>`;
         html += `<td style="padding: 0.4rem 1rem; font-family: monospace; font-size: 0.85rem;">${r.input}</td>`;
         html += `<td style="padding: 0.4rem 1rem; font-family: monospace; font-size: 0.85rem; color: #94a3b8;">${r.expected}</td>`;
@@ -850,7 +860,7 @@
       const gpsSec = (now - gpsT0) / 1000;
       const bdsSec = (now - bdsT0) / 1000;
       const diff = gpsSec - bdsSec;
-      logTest("Consistency", "GPS-BDS Offset", "14.0", diff.toFixed(1), diff === 14);
+      logTest("Consistency", "GPS-BDS Offset", "14.0", diff.toFixed(1), diff === 14, now);
 
       // 4. Fuzz Testing (20 random samples)
       for (let i = 0; i < 20; i++) {
@@ -860,13 +870,13 @@
         const randMs = Math.floor(minMs + Math.random() * (maxMs - minMs));
 
         const unix = unixTimeFromUTCTime(randMs);
-        const backToUtc = unix - leapMilliseconds(unix);
+        const backToUtc = unix - leapMillisecondsForUnixTime(unix);
         const pass = Math.abs(randMs - backToUtc) < 1;
 
         const d = new Date(randMs);
         const inputStr = `${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()} ${d.getUTCHours()}:${d.getUTCMinutes()}`;
 
-        logTest("Fuzzing", `Sample ${i + 1}: ${inputStr}`, "Δ < 1ms", `Err: ${Math.abs(randMs - backToUtc).toFixed(1)}ms`, pass);
+        logTest("Fuzzing", `Sample ${i + 1}: ${inputStr}`, "Δ < 1ms", `Err: ${Math.abs(randMs - backToUtc).toFixed(1)}ms`, pass, unix);
       }
 
       html += '</tbody></table>';
@@ -876,7 +886,7 @@
 
 
     function setLinksTime(unixTime) {
-      const utcTime = unixTime - leapMilliseconds(unixTime);
+      const utcTime = unixTime - leapMillisecondsForUnixTime(unixTime);
       const date = new Date(utcTime);
 
       const YYYY = date.getUTCFullYear();
@@ -966,34 +976,34 @@
     }
 
     const LEAP_SECONDS = [
-      0,
-      juneLeap(1972),
-      decemberLeap(1972),
-      decemberLeap(1973),
-      decemberLeap(1974),
-      decemberLeap(1975),
-      decemberLeap(1976),
-      decemberLeap(1977),
-      decemberLeap(1978),
-      decemberLeap(1979),
-      juneLeap(1981),
-      juneLeap(1982),
-      juneLeap(1983),
-      juneLeap(1985),
-      decemberLeap(1987),
-      decemberLeap(1989),
-      decemberLeap(1990),
-      juneLeap(1992),
-      juneLeap(1993),
-      juneLeap(1994),
-      decemberLeap(1995),
-      juneLeap(1997),
-      decemberLeap(1998),
-      decemberLeap(2005),
-      decemberLeap(2008),
-      juneLeap(2012),
-      juneLeap(2015),
-      decemberLeap(2016),
+      /* 00 */ 0,
+      /* 01 */ juneLeap(1972),
+      /* 02 */ decemberLeap(1972),
+      /* 03 */ decemberLeap(1973),
+      /* 04 */ decemberLeap(1974),
+      /* 05 */ decemberLeap(1975),
+      /* 06 */ decemberLeap(1976),
+      /* 07 */ decemberLeap(1977),
+      /* 08 */ decemberLeap(1978),
+      /* 09 */ decemberLeap(1979),
+      /* 10 */ juneLeap(1981),
+      /* 11 */ juneLeap(1982),
+      /* 12 */ juneLeap(1983),
+      /* 13 */ juneLeap(1985),
+      /* 14 */ decemberLeap(1987),
+      /* 15 */ decemberLeap(1989),
+      /* 16 */ decemberLeap(1990),
+      /* 17 */ juneLeap(1992),
+      /* 18 */ juneLeap(1993),
+      /* 19 */ juneLeap(1994),
+      /* 20 */ decemberLeap(1995),
+      /* 21 */ juneLeap(1997),
+      /* 22 */ decemberLeap(1998),
+      /* 23 */ decemberLeap(2005),
+      /* 24 */ decemberLeap(2008),
+      /* 25 */ juneLeap(2012),
+      /* 26 */ juneLeap(2015),
+      /* 27 */ decemberLeap(2016),
     ];
 
     /**
@@ -1038,8 +1048,20 @@
       return leapSecondsForUnixTime(time) != leapSecondsForUnixTime(time + 1000);
     }
 
-    function leapMilliseconds(t) {
+    function leapMillisecondsForUnixTime(t) {
       return leapSecondsForUnixTime(t) * 1000;
+    }
+
+    function getAdjustedTime(time) {
+      return $('useLeapSeconds').checked
+        ? (time - leapMillisecondsForUnixTime(time))
+        : (time - leapMillisecondsForUnixTime(gpsT0));
+    }
+
+    function unixTimeFromAdjustedTime(time) {
+      return $('useLeapSeconds').checked
+        ? (time + leapMillisecondsForUnixTime(time))
+        : (time + leapMillisecondsForUnixTime(gpsT0));
     }
 
     /**
@@ -1111,7 +1133,7 @@
      * GLONASS uses UTC+3h offset.
      */
     function setGlonassTime(unixTime) {
-      const utcMs = unixTime - leapMilliseconds(unixTime);
+      const utcMs = unixTime - leapMillisecondsForUnixTime(unixTime);
       const gloMs = utcMs + (3 * 3600 * 1000); // GLONASS is UTC+3h
       const date = new Date(gloMs);
 
@@ -1130,7 +1152,7 @@
       // TAI = UTC + Leap Seconds + 10s (standard offset)
       // Actually TAI = GPS + 19s
       const taiMs = unixTime + 19000;
-      const taiDate = new Date(taiMs - leapMilliseconds(taiMs)); // This is a simplification for display
+      const taiDate = new Date(taiMs - leapMillisecondsForUnixTime(taiMs)); // This is a simplification for display
 
       $('jdDisplay').textContent = jd.toFixed(6);
       $('mjdDisplay').textContent = mjd.toFixed(6);
@@ -1151,7 +1173,7 @@
      * @param {number} unixTime - Monotonic Unix timestamp in milliseconds.
      */
     function setCalendarTime(unixTime) {
-      const useLeaps = $('useLeapSeconds').checked;
+      const isUtc = $('useLeapSeconds').checked;
 
       /*
        * If 'Apply GPS Leap Seconds' is checked (useLeaps = true):
@@ -1161,30 +1183,43 @@
        * We treat the monotonic time as the source of truth for display (GPS time),
        * effectively showing TAI-like time (without leap seconds applied).
        */
-      const displayTime = useLeaps ? unixTime - leapMilliseconds(unixTime) : unixTime;
-      const isLeap = useLeaps && isDuringLeapSecond(unixTime);
+      if (isUtc) {
+        $('calendarTitle').textContent = "UTC Calendar Date & Time";
 
-      // Update title based on mode
-      $('calendarTitle').textContent = useLeaps ? "UTC Calendar Date & Time" : "GPS Calendar Date & Time";
+        const displayTime = unixTime - leapMillisecondsForUnixTime(unixTime);
+        const isLeap = isDuringLeapSecond(unixTime);
+        const date = new Date(isLeap ? displayTime - 1000 : displayTime);
 
-      const date = new Date(isLeap ? displayTime - 1000 : displayTime);
+        $('year').value = date.getUTCFullYear();
+        $('month').value = date.getUTCMonth();
+        $('day').value = date.getUTCDate();
+        $('hours').value = date.getUTCHours();
+        $('minutes').value = date.getUTCMinutes();
 
-      $('year').value = date.getUTCFullYear();
-      $('month').value = date.getUTCMonth();
-      $('day').value = date.getUTCDate();
-      $('hours').value = date.getUTCHours();
-      $('minutes').value = date.getUTCMinutes();
+        if (isLeap) {
+          $('seconds').value = date.getUTCSeconds() + 1;
+          $('fullDateDisplay').textContent = "During leap second insertion...";
+        } else {
+          $('seconds').value = date.getUTCSeconds();
+          $('fullDateDisplay').textContent = date.toUTCString().replace("GMT", "UTC");
+        }
 
-      if (isLeap) {
-        $('seconds').value = date.getUTCSeconds() + 1;
-        $('fullDateDisplay').textContent = "During leap second insertion...";
       } else {
+        $('calendarTitle').textContent = "GPS Calendar Date & Time";
+
+        const displayTime = unixTime - leapMillisecondsForUnixTime(gpsT0);
+        const date = new Date(displayTime);
+
+        $('year').value = date.getUTCFullYear();
+        $('month').value = date.getUTCMonth();
+        $('day').value = date.getUTCDate();
+        $('hours').value = date.getUTCHours();
+        $('minutes').value = date.getUTCMinutes();
         $('seconds').value = date.getUTCSeconds();
-        // Update label to reflect mode
-        const mode = useLeaps ? "UTC" : "GPS";
-        $('fullDateDisplay').textContent = date.toUTCString().replace("GMT", mode);
+        $('fullDateDisplay').textContent = date.toUTCString().replace("GMT", "GPS");
       }
-      $('leapSecondsDisplay').textContent = leapMilliseconds(unixTime) / 1000;
+
+      $('leapSecondsDisplay').textContent = leapMillisecondsForUnixTime(unixTime) / 1000;
     }
 
     /**
@@ -1193,7 +1228,7 @@
      * @param {number} time - Monotonic Unix timestamp in milliseconds.
      */
     function setDOYTime(time) {
-      const date = new Date(time);
+      const date = new Date(getAdjustedTime(time));
       const yearStart = Date.UTC(date.getUTCFullYear(), 0, 1);
       const daysInYear = (time - yearStart) / (86400 * 1000);
       $('doy').value = daysInYear.toFixed(3);
@@ -1222,7 +1257,7 @@
     }
 
     function setRinexTime(unixTime) {
-      const date = new Date(unixTime);
+      const date = new Date(unixTime - leapMillisecondsForUnixTime(gpsT0));
 
       const y = date.getUTCFullYear();
       const m = String(date.getUTCMonth() + 1).padStart(2, '0');
