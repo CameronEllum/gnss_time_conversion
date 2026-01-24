@@ -218,6 +218,11 @@
       padding-left: 1rem;
     }
 
+    select.form-input option {
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+    }
+
     /* Info Display */
     .info-value {
       font-family: 'Courier New', monospace;
@@ -258,13 +263,14 @@
 
   <div class="container">
     <header>
-      <h1 id="mainTitle" style="cursor: pointer; user-select: none;">GNSS Time Converter</h1>
+      <h1 id="mainTitle" style="cursor: pointer; user-select: none;" title="CTRL+click to run tests.">GNSS Time
+        Converter</h1>
     </header>
 
     <main class="layout-grid">
       <!-- GPS Section -->
       <section class="section-card">
-        <h2 class="section-title">GPS Time (GLONASS/Galileo/etc.)</h2>
+        <h2 class="section-title">GPS Time</h2>
         <div class="input-group">
           <label for="gpsWeek">GPS Week</label>
           <div class="spinner-wrapper" data-spinner="gpsWeek">
@@ -290,7 +296,15 @@
 
       <!-- Calendar Section -->
       <section class="section-card">
-        <h2 class="section-title">Calendar Date & Time (UTC)</h2>
+        <div class="label-row" style="margin-bottom: 1.5rem;">
+          <h2 class="section-title" style="margin-bottom: 0;" id="calendarTitle">UTC Calendar Date & Time</h2>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="useLeapSeconds" checked
+              style="accent-color: var(--accent-color); width: 16px; height: 16px;">
+            <label for="useLeapSeconds" style="margin-bottom: 0; cursor: pointer; user-select: none;">Apply Leap
+              Seconds</label>
+          </div>
+        </div>
         <div class="time-group-3">
           <div class="input-group">
             <label for="year">Year</label>
@@ -413,20 +427,43 @@
         </div>
       </section>
 
+      <!-- RINEX Section -->
+      <section class="section-card">
+        <h2 class="section-title">RINEX 3.0 Timestamp (UTC)</h2>
+        <div class="input-group">
+          <div class="info-value" id="rinexDisplay"
+            style="font-family: 'Courier New', monospace; font-size: 1rem; letter-spacing: -0.5px; background: rgba(0,0,0,0.4); border-color: var(--accent-color);">
+            Initializing...
+          </div>
+        </div>
+      </section>
+
       <!-- Full Date String Section (Span) -->
-      <section class="section-card" style="grid-column: 1 / -1;">
+      <section class="section-card">
         <h2 class="section-title">Standardized Notation</h2>
         <div class="info-value" id="fullDateDisplay" style="font-size: 1.2rem; color: var(--accent-hover);">
           Initializing...</div>
       </section>
 
+
+      <!-- Links Section -->
+      <section id="linksCard" class="section-card readonly-card" style="grid-column: 1 / -1;">
+        <h2 class="section-title">External IGS References</h2>
+        <div id="linksOutput"
+          style="display: flex; flex-direction: column; gap: 0.5rem; background: rgba(0,0,0,0.4); border-radius: 12px; padding: 1rem; border: 1px solid var(--card-border);">
+        </div>
+      </section>
+
       <!-- Test Results Section (Hidden by default) -->
       <section id="testCard" class="section-card readonly-card" style="grid-column: 1 / -1; display: none;">
-        <h2 class="section-title">System Integrity Verification</h2>
+        <h2 class="section-title" style="cursor: pointer;"
+          onclick="document.getElementById('testCard').style.display='none'" title="Click to hide">System Integrity
+          Verification</h2>
         <div id="testOutput"
           style="overflow-x: auto; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--card-border);">
         </div>
       </section>
+
     </main>
   </div>
 
@@ -517,8 +554,87 @@
       return html;
     }
 
-    // General idea for everything that follows: all times are in Javascript's
-    // "Unix" time, which is a monotonic clock.
+    function setLinksTime(unixTime) {
+      const utcTime = unixTime - leapMilliseconds(unixTime);
+      const date = new Date(utcTime);
+
+      const YYYY = date.getUTCFullYear();
+      const YY = String(YYYY).slice(-2);
+
+      const yearStart = Date.UTC(YYYY, 0, 1);
+      const diff = utcTime - yearStart;
+      const doy = Math.floor(diff / 86400000) + 1;
+      const DDD = String(doy).padStart(3, '0');
+
+      const W = $('gpsWeek').value.padStart(4, '0');
+
+      /*
+       * Helper function to generate standardized HTML for a group of links.
+       * Takes a title and an array of link objects {name, url}.
+       * Returns an HTML string string for the complete group.
+       */
+      const createLinkGroup = (title, links) => {
+        let groupHtml = `<div style="margin-bottom: 1rem;">
+          <h3 style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--card-border); padding-bottom: 0.25rem;">${title}</h3>`;
+        links.forEach(l => {
+          groupHtml +=
+            `<a href="${l.url}" target="_blank" style="display: block; padding: 0.6rem 0.75rem; background: rgba(255,255,255,0.03); color: var(--accent-color); text-decoration: none; border-radius: 6px; margin-bottom: 0.4rem; transition: background 0.2s; font-size: 0.9rem;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+              ${l.name} <span style="float: right; opacity: 0.7;">&nearr;</span>
+            </a>`;
+        });
+        groupHtml += `</div>`;
+        return groupHtml;
+      };
+
+      // 1. BKG (Bundesamt für Kartographie und Geodäsie) - No login required
+      const bkgLinks = [{
+        name: "Daily Obs (RINEX v3)",
+        url: `https://igs.bkg.bund.de/root_ftp/IGS/obs/${YYYY}/${DDD}/`
+      },
+      {
+        name: "Broadcast Ephemerides",
+        url: `https://igs.bkg.bund.de/root_ftp/IGS/BRDC/${YYYY}/${DDD}/`
+      },
+      {
+        name: "Precise Products",
+        url: `https://igs.bkg.bund.de/root_ftp/IGS/products/${W}/`
+      }
+      ];
+
+      // 2. CDDIS (NASA) - Login required
+      const cddisLinks = [{
+        name: "Daily Obs (RINEX v2)",
+        url: `https://cddis.nasa.gov/archive/gnss/data/daily/${YYYY}/${DDD}/${YY}o/`
+      },
+      {
+        name: "Broadcast Ephemerides",
+        url: `https://cddis.nasa.gov/archive/gnss/data/daily/${YYYY}/${DDD}/${YY}n/`
+      },
+      {
+        name: "Precise Products",
+        url: `https://cddis.nasa.gov/archive/gnss/products/${W}/`
+      }
+      ];
+
+      // 3. IGN (Institut national de l'information géographique et forestière)
+      const ignLinks = [{
+        name: "Daily Data",
+        url: `ftp://igs.ign.fr/pub/igs/data/${YYYY}/${DDD}/`
+      },
+      {
+        name: "Precise Products",
+        url: `ftp://igs.ign.fr/pub/igs/products/${W}/`
+      }
+      ];
+
+      let html = '';
+      html += createLinkGroup("BKG (No Login)", bkgLinks);
+      html += createLinkGroup("CDDIS (NASA Login)", cddisLinks);
+      html += createLinkGroup("IGN (FTP)", ignLinks);
+
+      $('linksOutput').innerHTML = html;
+    }
+
 
     function juneLeap(year) {
       return Date.UTC(year, 6, 1);
@@ -585,14 +701,16 @@
      * @returns {number} Number of leap seconds.
      */
     function leapSecondsForUtcTime(t) {
-      let n = LEAP_SECONDS.length;
-      let leap = 0;
-      for (; leap != n - 1; leap++) {
-        if (t >= LEAP_SECONDS[leap] && t < LEAP_SECONDS[leap + 1] + 1000) {
-          return leap;
+      /*
+       * Iterate backwards to find the last leap second insertion point that is
+       * less than or equal to the given UTC time 't'.
+       */
+      for (let i = LEAP_SECONDS.length - 1; i >= 0; i--) {
+        if (t >= LEAP_SECONDS[i]) {
+          return i;
         }
       }
-      return leap;
+      return 0;
     }
 
     function isDuringLeapSecond(time) {
@@ -652,11 +770,27 @@
 
     /**
      * Updates the UI with the Calendar representation of the given time.
+     * Respects the 'Apply Leap Seconds' checkbox state.
      * @param {number} unixTime - Monotonic Unix timestamp in milliseconds.
      */
     function setCalendarTime(unixTime) {
-      const utcTime = unixTime - leapMilliseconds(unixTime);
-      const date = new Date(isDuringLeapSecond(unixTime) ? utcTime - 1000 : utcTime);
+      const useLeaps = $('useLeapSeconds').checked;
+
+      /*
+       * If 'Apply GPS Leap Seconds' is checked (useLeaps = true):
+       * We subtract leap seconds from the monotonic time to display UTC.
+       * 
+       * If unchecked (useLeaps = false):
+       * We treat the monotonic time as the source of truth for display (GPS time),
+       * effectively showing TAI-like time (without leap seconds applied).
+       */
+      const displayTime = useLeaps ? unixTime - leapMilliseconds(unixTime) : unixTime;
+      const isLeap = useLeaps && isDuringLeapSecond(unixTime);
+
+      // Update title based on mode
+      $('calendarTitle').textContent = useLeaps ? "UTC Calendar Date & Time" : "GPS Calendar Date & Time";
+
+      const date = new Date(isLeap ? displayTime - 1000 : displayTime);
 
       $('year').value = date.getUTCFullYear();
       $('month').value = date.getUTCMonth();
@@ -664,12 +798,14 @@
       $('hours').value = date.getUTCHours();
       $('minutes').value = date.getUTCMinutes();
 
-      if (isDuringLeapSecond(unixTime)) {
+      if (isLeap) {
         $('seconds').value = date.getUTCSeconds() + 1;
         $('fullDateDisplay').textContent = "During leap second insertion...";
       } else {
         $('seconds').value = date.getUTCSeconds();
-        $('fullDateDisplay').textContent = date.toUTCString();
+        // Update label to reflect mode
+        const mode = useLeaps ? "UTC" : "GPS";
+        $('fullDateDisplay').textContent = date.toUTCString().replace("GMT", mode);
       }
       $('leapSecondsDisplay').textContent = leapMilliseconds(unixTime) / 1000;
     }
@@ -708,6 +844,22 @@
       $('unix').value = (time / 1000).toFixed(0);
     }
 
+    function setRinexTime(unixTime) {
+      const date = new Date(unixTime);
+
+      const y = date.getUTCFullYear();
+      const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(date.getUTCDate()).padStart(2, '0');
+      const h = String(date.getUTCHours()).padStart(2, '0');
+      const min = String(date.getUTCMinutes()).padStart(2, '0');
+
+      const sVal = date.getUTCSeconds() + (date.getUTCMilliseconds() / 1000);
+      const sStr = sVal.toFixed(7).padStart(10, '0');
+
+      const rinexStr = `> ${y} ${m} ${d} ${h} ${min} ${sStr}`;
+      $('rinexDisplay').textContent = rinexStr;
+    }
+
     /**
      * Synchronizes all time displays across the application based on a single point in time.
      * @param {number} time - Monotonic Unix timestamp in milliseconds.
@@ -719,6 +871,8 @@
       setDOYTime(time);
       setEpochTime(time);
       setUnixTime(time);
+      setRinexTime(time);
+      setLinksTime(time);
     }
 
     // Input Handlers
@@ -745,12 +899,17 @@
         $('minutes').value,
         $('seconds').value
       );
-      setTime(unixTimeFromUTCTime(time));
+
+      const useLeaps = $('useLeapSeconds').checked;
+      if (useLeaps) {
+        setTime(unixTimeFromUTCTime(time));
+      } else {
+        setTime(time);
+      }
     }
 
     function onDoyTime() {
       const time = Date.UTC($('year').value, 0, 1);
-      // Converts fractional Days of Year back into a monotonic Unix timestamp.
       setTime(time + parseFloat($('doy').value) * 86400000);
     }
 
@@ -762,7 +921,6 @@
      * UI Initialization & Spinner Logic
      */
     document.addEventListener('DOMContentLoaded', () => {
-      // Init with current time
       setTime(new Date().getTime());
 
       // Setup Spinner Buttons
@@ -795,6 +953,9 @@
       $('hours').onchange = onCalendarTime;
       $('minutes').onchange = onCalendarTime;
       $('seconds').onchange = onCalendarTime;
+      $('useLeapSeconds').onchange = () => {
+        setTime(parseInt($('unix').value) * 1000);
+      };
 
       $('doy').onchange = onDoyTime;
       $('unix').onchange = onUnixTime;
@@ -816,7 +977,9 @@
           if (card.style.display === 'none') {
             $('testOutput').innerHTML = runTests();
             card.style.display = 'block';
-            card.scrollIntoView({ behavior: 'smooth' });
+            card.scrollIntoView({
+              behavior: 'smooth'
+            });
           } else {
             card.style.display = 'none';
           }
