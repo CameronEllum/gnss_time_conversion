@@ -1,830 +1,309 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>GNSS Time Conversion</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
-      crossorigin="anonymous"
-    />
-  </head>
-  <body>
-    <h1>GNSS Time Converter</h1>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://code.jquery.com/jquery-3.6.0.min.js"
-      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-      crossorigin="anonymous"
-    ></script>
-    <script>
-      /**
-       * Author and copyright: Stefan Haack (https://shaack.com)
-       * Repository: https://github.com/shaack/bootstrap-input-spinner
-       * License: MIT, see file 'LICENSE'
-       */
 
-      (function ($) {
-        "use strict";
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>GNSS Time Conversion</title>
+  <!-- Modern Typography: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0c0e14;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-color: #4f46e5;
+      --accent-hover: #6366f1;
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --input-bg: rgba(0, 0, 0, 0.2);
+      --input-border: rgba(255, 255, 255, 0.1);
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        let triggerKeyPressed = false;
-        const originalVal = $.fn.val;
-        $.fn.val = function (value) {
-          if (arguments.length >= 1) {
-            for (let i = 0; i < this.length; i++) {
-              if (this[i]["bootstrap-input-spinner"] && this[i].setValue) {
-                const element = this[i];
-                setTimeout(function () {
-                  element.setValue(value);
-                });
-              }
-            }
-          }
-          return originalVal.apply(this, arguments);
-        };
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        $.fn.inputSpinner = function (methodOrProps) {
-          if (methodOrProps === "destroy") {
-            this.each(function () {
-              if (this["bootstrap-input-spinner"]) {
-                this.destroyInputSpinner();
-              } else {
-                console.warn("element", this, "is no bootstrap-input-spinner");
-              }
-            });
-            return this;
-          }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top left, #1a1c2e, #0c0e14 60%);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
 
-          const props = {
-            decrementButton: "<strong>&minus;</strong>", // button text
-            incrementButton: "<strong>&plus;</strong>", // ..
-            groupClass: "", // css class of the resulting input-group
-            buttonsClass: "btn-outline-secondary",
-            buttonsWidth: "2.5rem",
-            textAlign: "center", // alignment of the entered number
-            autoDelay: 500, // ms threshold before auto value change
-            autoInterval: 50, // speed of auto value change, set to `undefined` to disable auto-change
-            buttonsOnly: false, // set this `true` to disable the possibility to enter or paste the number via keyboard
-            keyboardStepping: true, // set this to `false` to disallow the use of the up and down arrow keys to step
-            // the template of the input
-            template:
-              '<div class="input-group ${groupClass}">' +
-              '<button style="min-width: ${buttonsWidth}" class="btn btn-decrement ${buttonsClass} btn-minus" type="button">${decrementButton}</button>' +
-              '<input type="text" inputmode="decimal" style="text-align: ${textAlign}" class="form-control form-control-text-input"/>' +
-              '<button style="min-width: ${buttonsWidth}" class="btn btn-increment ${buttonsClass} btn-plus" type="button">${incrementButton}</button>' +
-              "</div>",
-          };
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-          for (let option in methodOrProps) {
-            // noinspection JSUnfilteredForInLoop
-            props[option] = methodOrProps[option];
-          }
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
 
-          const html = props.template
-            .replace(/\${groupClass}/g, props.groupClass)
-            .replace(/\${buttonsWidth}/g, props.buttonsWidth)
-            .replace(/\${buttonsClass}/g, props.buttonsClass)
-            .replace(/\${decrementButton}/g, props.decrementButton)
-            .replace(/\${incrementButton}/g, props.incrementButton)
-            .replace(/\${textAlign}/g, props.textAlign);
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
 
-          this.each(function () {
-            if (this["bootstrap-input-spinner"]) {
-              console.warn(
-                "element",
-                this,
-                "is already a bootstrap-input-spinner"
-              );
-            } else {
-              var $original = $(this);
-              $original[0]["bootstrap-input-spinner"] = true;
-              $original.hide();
+    header p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
 
-              var autoDelayHandler = null;
-              var autoIntervalHandler = null;
+    .layout-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
 
-              var $inputGroup = $(html);
-              var $buttonDecrement = $inputGroup.find(".btn-decrement");
-              var $buttonIncrement = $inputGroup.find(".btn-increment");
-              var $input = $inputGroup.find("input");
-              var $label = $("label[for='" + $original.attr("id") + "']");
-              if (!$label[0]) {
-                $label = $original.closest("label");
-              }
+    /* Card System */
+    .section-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: var(--transition);
+    }
 
-              var min = null;
-              var max = null;
-              var step = null;
-              var decimals = null;
+    .section-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-2px);
+    }
 
-              updateAttributes();
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-              var value = parseFloat($original[0].value);
-              let pointerState = false;
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--accent-color);
+      border-radius: 2px;
+    }
 
-              $original[0].setValue = function (newValue) {
-                setValue(newValue);
-              };
-              $original[0].destroyInputSpinner = function () {
-                destroy();
-              };
+    /* Form Controls */
+    .input-group {
+      margin-bottom: 1.25rem;
+    }
 
-              var observer = new MutationObserver(function () {
-                updateAttributes();
-                setValue(value, true);
-              });
-              observer.observe($original[0], { attributes: true });
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
 
-              $original.after($inputGroup);
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
 
-              setValue(value);
+    .spinner-wrapper {
+      display: flex;
+      align-items: stretch;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: var(--transition);
+    }
 
-              $input
-                .on("paste input change focusout", function (event) {
-                  let newValue = $input[0].value;
-                  const focusOut = event.type === "focusout";
-                  newValue = Number(newValue);
-                  setValue(newValue, focusOut);
-                  dispatchEvent($original, event.type);
-                  if (props.keyboardStepping && focusOut) {
-                    // stop stepping
-                    resetTimer();
-                  }
-                })
-                .on("keydown", function (event) {
-                  if (props.keyboardStepping) {
-                    if (event.which === 38) {
-                      // up arrow pressed
-                      event.preventDefault();
-                      if (!$buttonDecrement.prop("disabled")) {
-                        stepHandling(step);
-                      }
-                    } else if (event.which === 40) {
-                      // down arrow pressed
-                      event.preventDefault();
-                      if (!$buttonIncrement.prop("disabled")) {
-                        stepHandling(-step);
-                      }
-                    }
-                  }
-                })
-                .on("keyup", function (event) {
-                  // up/down arrow released
-                  if (
-                    props.keyboardStepping &&
-                    (event.which === 38 || event.which === 40)
-                  ) {
-                    event.preventDefault();
-                    resetTimer();
-                  }
-                });
+    .spinner-wrapper:focus-within {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
 
-              // decrement button
-              onPointerDown($buttonDecrement[0], function () {
-                if (!$buttonDecrement.prop("disabled")) {
-                  pointerState = true;
-                  stepHandling(-step);
-                }
-              });
-              // increment button
-              onPointerDown($buttonIncrement[0], function () {
-                if (!$buttonIncrement.prop("disabled")) {
-                  pointerState = true;
-                  stepHandling(step);
-                }
-              });
-              onPointerUp(document.body, function () {
-                if (pointerState === true) {
-                  resetTimer();
-                  dispatchEvent($original, "change");
-                  pointerState = false;
-                }
-              });
-            }
+    .spinner-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      width: 44px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      font-size: 1.2rem;
+    }
 
-            function setValue(newValue, updateInput) {
-              if (updateInput === undefined) {
-                updateInput = true;
-              }
-              if (isNaN(newValue) || newValue === "") {
-                $original[0].value = "";
-                if (updateInput) {
-                  $input[0].value = "";
-                }
-                value = NaN;
-              } else {
-                newValue = Number(newValue);
-                newValue = Math.min(Math.max(newValue, min), max);
-                $original[0].value = newValue;
-                if (updateInput) {
-                  $input[0].value = newValue.toFixed();
-                }
-                value = newValue;
-              }
-            }
+    .spinner-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--accent-color);
+    }
 
-            function destroy() {
-              $original.prop("required", $input.prop("required"));
-              observer.disconnect();
-              resetTimer();
-              $input.off("paste input change focusout");
-              $inputGroup.remove();
-              $original.show();
-              $original[0]["bootstrap-input-spinner"] = undefined;
-              if ($label[0]) {
-                $label.attr("for", $original.attr("id"));
-              }
-            }
+    .spinner-btn:active {
+      background: rgba(255, 255, 255, 0.1);
+    }
 
-            function dispatchEvent($element, type) {
-              if (type) {
-                setTimeout(function () {
-                  let event;
-                  if (typeof Event === "function") {
-                    event = new Event(type, { bubbles: true });
-                  } else {
-                    // IE
-                    event = document.createEvent("Event");
-                    event.initEvent(type, true, true);
-                  }
-                  $element[0].dispatchEvent(event);
-                });
-              }
-            }
+    /* Remove default number input arrows */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      display: none;
+      margin: 0;
+    }
 
-            function stepHandling(step) {
-              calcStep(step);
-              resetTimer();
-              if (props.autoInterval !== undefined) {
-                autoDelayHandler = setTimeout(function () {
-                  autoIntervalHandler = setInterval(function () {
-                    calcStep(step);
-                  }, props.autoInterval);
-                }, props.autoDelay);
-              }
-            }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: none;
+    }
 
-            function calcStep(step) {
-              if (isNaN(value)) {
-                value = 0;
-              }
-              setValue(Math.round(value / step) * step + step);
-              dispatchEvent($original, "input");
-            }
+    .form-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      padding: 0.75rem 0.5rem;
+      font-family: inherit;
+      font-size: 1rem;
+      text-align: center;
+      width: 100%;
+    }
 
-            function resetTimer() {
-              clearTimeout(autoDelayHandler);
-              clearTimeout(autoIntervalHandler);
-            }
+    .form-input:focus {
+      outline: none;
+    }
 
-            function updateAttributes() {
-              // copy properties from original to the new input
-              if ($original.prop("required")) {
-                $input.prop("required", $original.prop("required"));
-                $original.removeAttr("required");
-              }
-              $input.prop("placeholder", $original.prop("placeholder"));
-              $input.attr(
-                "inputmode",
-                $original.attr("inputmode") || "decimal"
-              );
-              const disabled = $original.prop("disabled");
-              const readonly = $original.prop("readonly");
-              $input.prop("disabled", disabled);
-              $input.prop("readonly", readonly || props.buttonsOnly);
-              $buttonIncrement.prop("disabled", disabled || readonly);
-              $buttonDecrement.prop("disabled", disabled || readonly);
-              if (disabled || readonly) {
-                resetTimer();
-              }
-              const originalClass = $original.prop("class");
-              let groupClass = "";
-              // sizing
-              if (/form-control-sm/g.test(originalClass)) {
-                groupClass = "input-group-sm";
-              } else if (/form-control-lg/g.test(originalClass)) {
-                groupClass = "input-group-lg";
-              }
-              const inputClass = originalClass.replace(
-                /form-control(-(sm|lg))?/g,
-                ""
-              );
-              $inputGroup.prop(
-                "class",
-                "input-group " + groupClass + " " + props.groupClass
-              );
-              $input.prop("class", "form-control " + inputClass);
+    /* Read Only / Disabled Styles */
+    .form-input:disabled {
+      color: var(--text-secondary);
+      cursor: not-allowed;
+    }
 
-              // update the main attributes
-              min =
-                isNaN($original.prop("min")) || $original.prop("min") === ""
-                  ? -Infinity
-                  : parseFloat($original.prop("min"));
-              max =
-                isNaN($original.prop("max")) || $original.prop("max") === ""
-                  ? Infinity
-                  : parseFloat($original.prop("max"));
-              step = parseFloat($original.prop("step")) || 1;
-              decimals = parseInt($original.prop("decimals")) || 0;
+    .readonly-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px dashed var(--card-border);
+    }
 
-              if ($original.attr("hidden")) {
-                $inputGroup.attr("hidden", $original.attr("hidden"));
-              } else {
-                $inputGroup.removeAttr("hidden");
-              }
-              if ($original.attr("id")) {
-                $input.attr("id", $original.attr("id") + ":input_spinner"); // give the spinner a unique id...
-                if ($label[0]) {
-                  $label.attr("for", $input.attr("id")); // ...to rewire the label
-                }
-              }
-            }
-          });
+    select.form-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1.2rem;
+      padding-right: 2.5rem;
+      text-align: left;
+      padding-left: 1rem;
+    }
 
-          return this;
-        };
+    /* Info Display */
+    .info-value {
+      font-family: 'Courier New', monospace;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #10b981;
+      word-break: break-all;
+    }
 
-        function onPointerUp(element, callback) {
-          element.addEventListener("mouseup", function (e) {
-            callback(e);
-          });
-          element.addEventListener("touchend", function (e) {
-            callback(e);
-          });
-          element.addEventListener("keyup", function (e) {
-            if (e.keyCode === 32 || e.keyCode === 13) {
-              triggerKeyPressed = false;
-              callback(e);
-            }
-          });
-        }
+    /* Custom Specific Layouts */
+    .time-group-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
 
-        function onPointerDown(element, callback) {
-          element.addEventListener("mousedown", function (e) {
-            if (e.button === 0) {
-              e.preventDefault();
-              callback(e);
-            }
-          });
-          element.addEventListener(
-            "touchstart",
-            function (e) {
-              if (e.cancelable) {
-                e.preventDefault();
-              }
-              callback(e);
-            },
-            { passive: false }
-          );
-          element.addEventListener("keydown", function (e) {
-            if ((e.keyCode === 32 || e.keyCode === 13) && !triggerKeyPressed) {
-              triggerKeyPressed = true;
-              callback(e);
-            }
-          });
-        }
-      })(jQuery);
-
-      // General idea for everything that follows: all times are in Javascript's
-      // "Unix" time, which is a monotonic clock.
-
-      function juneLeap(year) {
-        return Date.UTC(year, 6, 1);
+    @media (max-width: 640px) {
+      header h1 {
+        font-size: 1.8rem;
       }
 
-      function decemberLeap(year) {
-        return Date.UTC(year + 1, 0, 1);
+      .layout-grid {
+        grid-template-columns: 1fr;
       }
 
-      const LEAP_SECONDS = [
-        0,
-        juneLeap(1972),
-        decemberLeap(1972),
-        decemberLeap(1973),
-        decemberLeap(1974),
-        decemberLeap(1975),
-        decemberLeap(1976),
-        decemberLeap(1977),
-        decemberLeap(1978),
-        decemberLeap(1979),
-        juneLeap(1981),
-        juneLeap(1982),
-        juneLeap(1983),
-        juneLeap(1985),
-        decemberLeap(1987),
-        decemberLeap(1989),
-        decemberLeap(1990),
-        juneLeap(1992),
-        juneLeap(1993),
-        juneLeap(1994),
-        decemberLeap(1995),
-        juneLeap(1997),
-        decemberLeap(1998),
-        decemberLeap(2005),
-        decemberLeap(2008),
-        juneLeap(2012),
-        juneLeap(2015),
-        decemberLeap(2016),
-      ];
-
-      function leapSecondsForUnixTime(t) {
-        let n = LEAP_SECONDS.length;
-        let leap = 0;
-        for (; leap != n - 1; leap++) {
-          if (
-            // In monotonic unix time, we have to accumulate the leap seconds
-            t >= LEAP_SECONDS[leap] + leap * 1000 &&
-            t < LEAP_SECONDS[leap + 1] + (leap + 1) * 1000
-          ) {
-            return leap;
-          }
-        }
-
-        return leap;
+      .time-group-3 {
+        grid-template-columns: 1fr;
       }
+    }
+  </style>
+</head>
 
-      function leapSecondsForUtcTime(t) {
-        let n = LEAP_SECONDS.length;
-        let leap = 0;
-        for (; leap != n - 1; leap++) {
-          if (t >= LEAP_SECONDS[leap] && t < LEAP_SECONDS[leap + 1] + 1000) {
-            return leap;
-          }
-        }
+<body>
 
-        return leap;
-      }
+  <div class="container">
+    <header>
+      <h1 id="mainTitle" style="cursor: pointer; user-select: none;">GNSS Time Converter</h1>
+    </header>
 
-      function isDuringLeapSecond(time) {
-        return (
-          leapSecondsForUnixTime(time) != leapSecondsForUnixTime(time + 1000)
-        );
-      }
+    <main class="layout-grid">
+      <!-- GPS Section -->
+      <section class="section-card">
+        <h2 class="section-title">GPS Time (GLONASS/Galileo/etc.)</h2>
+        <div class="input-group">
+          <label for="gpsWeek">GPS Week</label>
+          <div class="spinner-wrapper" data-spinner="gpsWeek">
+            <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
+            <input type="text" id="gpsWeek" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*">
+            <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="gpsTOW">GPS Time of Week (TOW)</label>
+          <div class="spinner-wrapper" data-spinner="gpsTOW">
+            <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
+            <input type="text" id="gpsTOW" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*"
+              data-step="1">
+            <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>GPS Leap Seconds (Relative to UTC)</label>
+          <div class="info-value" id="gpsLeapSecondsDisplay">0</div>
+        </div>
+      </section>
 
-      function leapMilliseconds(t) {
-        return leapSecondsForUnixTime(t) * 1000;
-      }
-
-      // Unix time is ahead of UTC time, as the latter has been delayed by the
-      // insertion of leap seconds.
-      function unixTimeFromUTCTime(utcTime) {
-        return utcTime + leapSecondsForUtcTime(utcTime) * 1000;
-      }
-
-      function utcTimeFromUnixime(unixTime) {
-        return unixTime - leapSecondsForUnixTime(unixTime) * 1000;
-      }
-
-      // Tests
-      function test() {
-        // Leap second 1
-        console.log("-- Leap second 1");
-        console.log(leapSecondsForUnixTime(78796799000) + ": should be 0");
-        console.log(leapSecondsForUnixTime(78796799500) + ": should be 0");
-        console.log(leapSecondsForUnixTime(78796800000) + ": should be 0");
-        console.log(leapSecondsForUnixTime(78796800500) + ": should be 0");
-        console.log(leapSecondsForUnixTime(78796801000) + ": should be 1");
-        console.log(leapSecondsForUnixTime(78796801500) + ": should be 1");
-        console.log(isDuringLeapSecond(78796800000) + ": should be true");
-
-        console.log(leapSecondsForUtcTime(78796799000) + ": should be 0");
-        console.log(leapSecondsForUtcTime(78796799500) + ": should be 0");
-        console.log(leapSecondsForUtcTime(78796800000) + ": should be 0");
-        console.log(leapSecondsForUtcTime(78796800500) + ": should be 0");
-        console.log(leapSecondsForUtcTime(78796801000) + ": should be 1");
-        console.log(leapSecondsForUtcTime(78796801500) + ": should be 1");
-
-        // Leap second 2
-        console.log("-- Leap second 2");
-        console.log(leapSecondsForUnixTime(94694400000) + ": should be 1");
-        console.log(leapSecondsForUnixTime(94694400500) + ": should be 1");
-        console.log(leapSecondsForUnixTime(94694401000) + ": should be 1");
-        console.log(leapSecondsForUnixTime(94694401500) + ": should be 1");
-        console.log(leapSecondsForUnixTime(94694402000) + ": should be 2");
-        console.log(leapSecondsForUnixTime(94694402500) + ": should be 2");
-        console.log(isDuringLeapSecond(94694401000) + ": should be true");
-
-        console.log(leapSecondsForUtcTime(94694399000) + ": should be 1");
-        console.log(leapSecondsForUtcTime(94694399500) + ": should be 1");
-        console.log(leapSecondsForUtcTime(94694400000) + ": should be 1");
-        console.log(leapSecondsForUtcTime(94694400500) + ": should be 1");
-        console.log(leapSecondsForUtcTime(94694401000) + ": should be 2");
-        console.log(leapSecondsForUtcTime(94694401500) + ": should be 2");
-
-        // Leap second 27
-        console.log("-- Leap second 27");
-        console.log(leapSecondsForUnixTime(1483228825000) + ": should be 26");
-        console.log(leapSecondsForUnixTime(1483228825500) + ": should be 26");
-        console.log(leapSecondsForUnixTime(1483228826000) + ": should be 26");
-        console.log(leapSecondsForUnixTime(1483228826500) + ": should be 26");
-        console.log(leapSecondsForUnixTime(1483228827000) + ": should be 27");
-        console.log(leapSecondsForUnixTime(1483228827500) + ": should be 27");
-        console.log(isDuringLeapSecond(1483228826000) + ": should be true");
-
-        console.log(leapSecondsForUtcTime(1483228799000) + ": should be 26");
-        console.log(leapSecondsForUtcTime(1483228799500) + ": should be 26");
-        console.log(leapSecondsForUtcTime(1483228800000) + ": should be 26");
-        console.log(leapSecondsForUtcTime(1483228800500) + ": should be 26");
-        console.log(leapSecondsForUtcTime(1483228801000) + ": should be 27");
-        console.log(leapSecondsForUtcTime(1483228801500) + ": should be 27");
-
-        console.log(
-          isDuringLeapSecond(Date.UTC(1972, 6, 1)) + ": should be true"
-        );
-        // At this point, UTC is one second behind unix time, and isDuringLeapSecond
-        // expects unix time, so this should be false.
-        console.log(
-          isDuringLeapSecond(Date.UTC(1974, 0, 1)) + ": should be false"
-        );
-        // Applying the leap second to the unix time takes it utc time.
-        console.log(
-          isDuringLeapSecond(unixTimeFromUTCTime(Date.UTC(1974, 0, 1))) +
-            ": should be true"
-        );
-        console.log(
-          isDuringLeapSecond(unixTimeFromUTCTime(Date.UTC(1980, 0, 1))) +
-            ": should be true"
-        );
-        console.log(
-          isDuringLeapSecond(unixTimeFromUTCTime(Date.UTC(1988, 0, 1))) +
-            ": should be true"
-        );
-        console.log(
-          isDuringLeapSecond(unixTimeFromUTCTime(Date.UTC(2009, 0, 1))) +
-            ": should be true"
-        );
-        console.log(
-          isDuringLeapSecond(unixTimeFromUTCTime(Date.UTC(2017, 0, 1))) +
-            ": should be true"
-        );
-      }
-
-      //test();
-
-      // These are in unix time
-      const gpsT0 = Date.UTC(1980, 0, 6) + 9000;
-      const bdsT0 = Date.UTC(2006, 0, 1) + 23000;
-      console.log("GPS T0: " + new Date(gpsT0).toUTCString());
-      console.log("BDS T0: " + new Date(bdsT0).toUTCString());
-
-      function setGPSTime(unixTime) {
-        const leap =
-          leapSecondsForUnixTime(unixTime) - leapSecondsForUnixTime(gpsT0);
-        const dt = unixTime - gpsT0;
-        const weeks = Math.floor(dt / 604800000);
-        const tow = (dt - weeks * 604800000) / 1000;
-
-        $("#gpsWeek").val(weeks);
-        $("#gpsTOW").val(tow);
-        $("#gpsLeapSeconds").val(leap);
-      }
-
-      function setBeiDouTime(unixTime) {
-        const leap =
-          leapSecondsForUnixTime(unixTime) - leapSecondsForUnixTime(bdsT0);
-        const dt = unixTime - bdsT0;
-        const weeks = Math.floor(dt / 604800000);
-        const tow = (dt - weeks * 604800000) / 1000;
-
-        $("#bdsWeek").val(weeks);
-        $("#bdsTOW").val(tow);
-        $("#bdsLeapSeconds").val(leap);
-      }
-
-      function setCalendarTime(unixTime) {
-        const utcTime = unixTime - leapMilliseconds(unixTime);
-        // Note that we use unixTime to determine the leap second
-        const date = new Date(
-          isDuringLeapSecond(unixTime) ? utcTime - 1000 : utcTime
-        );
-        $("#year").val(date.getUTCFullYear());
-        $("#month").val(date.getUTCMonth());
-        $("#day").val(date.getUTCDate());
-        $("#hours").val(date.getUTCHours());
-        $("#minutes").val(date.getUTCMinutes());
-        if (isDuringLeapSecond(unixTime)) {
-          $("#seconds").val(date.getUTCSeconds() + 1);
-          // toUTCString cannot represent leap seconds
-          $("#fullDate").val("During leap second");
-        } else {
-          $("#seconds").val(date.getUTCSeconds());
-          $("#fullDate").val(date.toUTCString());
-        }
-        $("#leapSeconds").val(leapMilliseconds(unixTime) / 1000);
-      }
-
-      function setDOYTime(time) {
-        const date = new Date(time);
-        const yearStart = Date.UTC(date.getUTCFullYear(), 0, 1);
-        const daysInYear = (time - yearStart) / (86400 * 1000);
-        $("#doy").val(daysInYear);
-      }
-
-      function setEpochTime(time) {
-        // Number of days in this year
-        const date = new Date(time);
-        const yearEnd = Date.UTC(date.getUTCFullYear() + 1, 0, 1);
-        const yearStart = Date.UTC(date.getUTCFullYear(), 0, 1);
-        const daysInYear = (yearEnd - yearStart) / (86400 * 1000);
-        const daysIntoYear = (time - yearStart) / (86400 * 1000);
-        const epoch = (
-          date.getUTCFullYear() +
-          daysIntoYear / daysInYear
-        ).toFixed(3);
-        $("#doy").val(daysIntoYear);
-        $("#epoch").val(epoch);
-      }
-
-      function setUnixTime(time) {
-        $("#unix").val(time / 1000);
-      }
-
-      function setTime(time) {
-        setGPSTime(time);
-        setBeiDouTime(time);
-        setCalendarTime(time);
-        setDOYTime(time);
-        setEpochTime(time);
-        setUnixTime(time);
-      }
-
-      function onGPSTime() {
-        const weeks = parseInt($("#gpsWeek").val());
-        const tow = parseInt($("#gpsTOW").val());
-        const diff = (weeks * 604800 + tow) * 1000; // Milliseconds
-        let time = gpsT0 + diff;
-        setTime(time);
-      }
-
-      function onBeiDouTime() {
-        const weeks = parseInt($("#bdsWeek").val());
-        const tow = parseInt($("#bdsTOW").val());
-        const diff = (weeks * 604800 + tow) * 1000; // Milliseconds
-        let time = new Date(bdsT0 + diff); // This is in the BDS time frame
-        setTime(time);
-      }
-
-      function onCalendarTime() {
-        const time = Date.UTC(
-          $("#year").val(),
-          $("#month").val(),
-          $("#day").val(),
-          $("#hours").val(),
-          $("#minutes").val(),
-          $("#seconds").val()
-        );
-        console.log("Time: " + new Date(time).toUTCString());
-        console.log("Time: " + new Date(unixTimeFromUTCTime(time)).toUTCString());
-
-        setTime(unixTimeFromUTCTime(time));
-        //setTime(time);
-      }
-
-      function onDoyTime() {
-        const time = Date.UTC($("#year").val(), 0, 1);
-
-        setTime(time + $("#doy").val() * 86400000);
-      }
-
-      function onUnixTime() {
-        const time = parseInt($("#unix").val()) * 1000;
-        setTime(time);
-      }
-
-      $(document).ready(function () {
-        let now = new Date();
-        setTime(now.getTime());
-      });
-    </script>
-
-    <div class="container-left px-4">
-      <form>
-        <fieldset>
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="gpsWeek" class="col-sm-1 col-form-label-sm"
-              >GPS Week</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input class="form-control-sm" id="gpsWeek" value="50" step="1" />
-              <script>
-                $("#gpsWeek").inputSpinner();
-                $("#gpsWeek").on("change", onGPSTime);
-              </script>
+      <!-- Calendar Section -->
+      <section class="section-card">
+        <h2 class="section-title">Calendar Date & Time (UTC)</h2>
+        <div class="time-group-3">
+          <div class="input-group">
+            <label for="year">Year</label>
+            <div class="spinner-wrapper" data-spinner="year">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="year" class="form-input" inputmode="numeric" pattern="[0-9]*">
+              <button class="spinner-btn plus" type="button">&plus;</button>
             </div>
           </div>
-
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="gpsTOW" class="col-sm-1 col-form-label-sm"
-              >GPS TOW</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control-sm"
-                id="gpsTOW"
-                value="86400"
-                min="0"
-                max="604801"
-                step="1"
-              />
-              <script>
-                $("#gpsTOW").inputSpinner();
-                $("#gpsTOW").on("change", onGPSTime);
-              </script>
-            </div>
-          </div>
-
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="gpsLeapSeconds" class="col-sm-1 col-form-label-sm"
-              >GPS Leap Seconds</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control form-control-sm"
-                id="gpsLeapSeconds"
-                type="text"
-                style="text-align: center"
-                disabled
-              />
-            </div>
-          </div>
-
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="bdsWeek" class="col-sm-1 col-form-label-sm"
-              >BeiDou Week</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input class="form-control-sm" id="bdsWeek" value="50" step="1" />
-              <script>
-                $("#bdsWeek").inputSpinner();
-                $("#bdsWeek").on("change", onBeiDouTime);
-              </script>
-            </div>
-          </div>
-
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="bdsTOW" class="col-sm-1 col-form-label-sm"
-              >BeiDou TOW</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control-sm"
-                id="bdsTOW"
-                value="86400"
-                min="0"
-                max="604801"
-                step="1"
-              />
-              <script>
-                $("#bdsTOW").inputSpinner();
-                $("#bdsTOW").on("change", onBeiDouTime);
-              </script>
-            </div>
-          </div>
-
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="bdsLeapSeconds" class="col-sm-1 col-form-label-sm"
-              >BeiDou Leap Seconds</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control form-control-sm"
-                id="bdsLeapSeconds"
-                type="text"
-                style="text-align: center"
-                disabled
-              />
-            </div>
-          </div>
-
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="year" class="col-sm-1 col-form-label-sm">Year</label>
-            <div class="col-sm-2" style="min-width: 275px">
-              <input class="form-control-sm" id="year" step="1" />
-              <script>
-                $("#year").inputSpinner();
-                $("#year").on("change", onCalendarTime);
-              </script>
-            </div>
-          </div>
-
-          <!-- Select Basic -->
-          <div class="row mb-3">
-            <label for="year" class="col-sm-1 col-form-label-sm">Month</label>
-            <div class="col-sm-2" style="min-width: 275px">
-              <select id="month" class="form-select form-select-sm">
+          <div class="input-group" style="grid-column: span 2;">
+            <label for="month">Month</label>
+            <div class="spinner-wrapper">
+              <select id="month" class="form-input">
                 <option value="0">January</option>
                 <option value="1">February</option>
                 <option value="2">March</option>
@@ -838,172 +317,514 @@
                 <option value="10">November</option>
                 <option value="11">December</option>
               </select>
-              <script>
-                $("#month").on("change", onCalendarTime);
-              </script>
             </div>
           </div>
+        </div>
+        <div class="time-group-3">
+          <div class="input-group">
+            <label for="day">Day</label>
+            <div class="spinner-wrapper" data-spinner="day">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="day" class="form-input" inputmode="numeric" pattern="[0-9]*" min="1" max="31">
+              <button class="spinner-btn plus" type="button">&plus;</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="hours">Hour</label>
+            <div class="spinner-wrapper" data-spinner="hours">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="hours" class="form-input" inputmode="numeric" pattern="[0-9]*" min="0" max="23">
+              <button class="spinner-btn plus" type="button">&plus;</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="minutes">Min</label>
+            <div class="spinner-wrapper" data-spinner="minutes">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="minutes" class="form-input" inputmode="numeric" pattern="[0-9]*" min="0" max="59">
+              <button class="spinner-btn plus" type="button">&plus;</button>
+            </div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="seconds">Seconds (UTC)</label>
+          <div class="spinner-wrapper" data-spinner="seconds">
+            <button class="spinner-btn minus" type="button">&minus;</button>
+            <input type="text" id="seconds" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" min="0"
+              max="61" data-step="1">
+            <button class="spinner-btn plus" type="button">&plus;</button>
+          </div>
+        </div>
+      </section>
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="day" class="col-sm-1 col-form-label-sm">Day</label>
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control-sm"
-                id="day"
-                value="1"
-                min="1"
-                max="31"
-                step="1"
-              />
-              <script>
-                $("#day").inputSpinner();
-                $("#day").on("change", onCalendarTime);
-              </script>
-            </div>
+      <!-- BeiDou Section -->
+      <section class="section-card">
+        <h2 class="section-title">BeiDou Time (BDS)</h2>
+        <div class="input-group">
+          <label for="bdsWeek">BeiDou Week</label>
+          <div class="spinner-wrapper" data-spinner="bdsWeek">
+            <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
+            <input type="text" id="bdsWeek" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*">
+            <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
           </div>
+        </div>
+        <div class="input-group">
+          <label for="bdsTOW">BeiDou Time of Week (TOW)</label>
+          <div class="spinner-wrapper" data-spinner="bdsTOW">
+            <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
+            <input type="text" id="bdsTOW" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*"
+              data-step="1">
+            <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>BDS Leap Seconds (Relative to UTC)</label>
+          <div class="info-value" id="bdsLeapSecondsDisplay">0</div>
+        </div>
+      </section>
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="hours" class="col-sm-1 col-form-label-sm">Hours</label>
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control-sm"
-                id="hours"
-                value="1"
-                min="0"
-                max="23"
-                step="1"
-              />
-              <script>
-                $("#hours").inputSpinner();
-                $("#hours").on("change", onCalendarTime);
-              </script>
-            </div>
+      <!-- Other Metrics Section -->
+      <section class="section-card">
+        <h2 class="section-title">Calculated Formats</h2>
+        <div class="input-group">
+          <label for="doy">Day of Year (DOY)</label>
+          <div class="spinner-wrapper" data-spinner="doy">
+            <button class="spinner-btn minus" type="button">&minus;</button>
+            <input type="text" id="doy" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" min="1"
+              max="366" data-step="1">
+            <button class="spinner-btn plus" type="button">&plus;</button>
           </div>
+        </div>
+        <div class="input-group">
+          <label for="unix">Unix Timestamp (Seconds)</label>
+          <div class="spinner-wrapper" data-spinner="unix">
+            <button class="spinner-btn minus" type="button">&minus;</button>
+            <input type="text" id="unix" class="form-input" inputmode="numeric" pattern="[0-9]*" data-step="1">
+            <button class="spinner-btn plus" type="button">&plus;</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Decimal Epoch</label>
+          <div class="info-value" id="epochDisplay">0.000</div>
+        </div>
+        <div class="input-group">
+          <label>UTC Leap Seconds (Total)</label>
+          <div class="info-value" id="leapSecondsDisplay">0</div>
+        </div>
+      </section>
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="minutes" class="col-sm-1 col-form-label-sm"
-              >Minutes</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control-sm"
-                id="minutes"
-                value="1"
-                min="0"
-                max="60"
-                step="1"
-              />
-              <script>
-                $("#minutes").inputSpinner();
-                $("#minutes").on("change", onCalendarTime);
-              </script>
-            </div>
-          </div>
+      <!-- Full Date String Section (Span) -->
+      <section class="section-card" style="grid-column: 1 / -1;">
+        <h2 class="section-title">Standardized Notation</h2>
+        <div class="info-value" id="fullDateDisplay" style="font-size: 1.2rem; color: var(--accent-hover);">
+          Initializing...</div>
+      </section>
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="seconds" class="col-sm-1 col-form-label-sm"
-              >Seconds</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control-sm"
-                id="seconds"
-                value="1"
-                min="-1"
-                max="61"
-                step="1"
-              />
-              <script>
-                $("#seconds").inputSpinner();
-                $("#seconds").on("change", onCalendarTime);
-              </script>
-            </div>
-          </div>
+      <!-- Test Results Section (Hidden by default) -->
+      <section id="testCard" class="section-card readonly-card" style="grid-column: 1 / -1; display: none;">
+        <h2 class="section-title">System Integrity Verification</h2>
+        <div id="testOutput"
+          style="overflow-x: auto; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--card-border);">
+        </div>
+      </section>
+    </main>
+  </div>
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="doy" class="col-sm-1 col-form-label-sm"
-              >Day of year</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control-sm"
-                id="doy"
-                value="1"
-                min="0"
-                max="366"
-                step="1"
-              />
-              <script>
-                $("#doy").inputSpinner();
-                $("#doy").on("change", onDoyTime);
-              </script>
-            </div>
-          </div>
+  <script>
+    /**
+     * Author and copyright: Stefan Haack (https://shaack.com)
+     * Repository: https://github.com/shaack/bootstrap-input-spinner
+     * License: MIT, see file 'LICENSE'
+     */
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="unix" class="col-sm-1 col-form-label-sm">Unix</label>
-            <div class="col-sm-2" style="min-width: 275px">
-              <input class="form-control-sm" id="unix" type="text" />
-              <script>
-                $("#unix").inputSpinner();
-                $("#unix").on("change", onUnixTime);
-              </script>
-            </div>
-          </div>
+    function runTests() {
+      const results = [];
+      const logTest = (type, input, expected, actual, pass) => {
+        results.push({ type, input, expected, actual, pass });
+      };
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="fullDate" class="col-sm-1 col-form-label-sm"
-              >Full date</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control form-control-sm"
-                id="fullDate"
-                type="text"
-                style="text-align: center"
-                disabled
-              />
-            </div>
-          </div>
+      /**
+       * Comprehensive test data generated using the 'gpstime' Python package.
+       * Provides industry-standard reference points across several leap-second eras.
+       */
+      const testData = [
+        { y: 1980, m: 0, d: 6, h: 0, min: 0, s: 0, w: 0, mow: 0 },
+        { y: 1981, m: 6, d: 1, h: 0, min: 0, s: 0, w: 77, mow: 259201 },
+        { y: 1983, m: 2, d: 15, h: 12, min: 34, s: 56, w: 166, mow: 218098 },
+        { y: 1985, m: 6, d: 1, h: 0, min: 0, s: 0, w: 286, mow: 86404 },
+        { y: 1988, m: 11, d: 10, h: 15, min: 20, s: 5, w: 465, mow: 573610 },
+        { y: 1992, m: 9, d: 24, h: 8, min: 30, s: 45, w: 667, mow: 549053 },
+        { y: 1999, m: 0, d: 1, h: 0, min: 0, s: 0, w: 990, mow: 432013 },
+        { y: 2003, m: 4, d: 17, h: 18, min: 45, s: 30, w: 1218, mow: 585943 },
+        { y: 2006, m: 0, d: 1, h: 0, min: 0, s: 0, w: 1356, mow: 14 },
+        { y: 2010, m: 10, d: 5, h: 3, min: 15, s: 12, w: 1608, mow: 443727 },
+        { y: 2012, m: 6, d: 1, h: 0, min: 0, s: 0, w: 1695, mow: 16 },
+        { y: 2015, m: 6, d: 1, h: 0, min: 0, s: 0, w: 1851, mow: 259217 },
+        { y: 2017, m: 0, d: 1, h: 0, min: 0, s: 0, w: 1930, mow: 18 },
+        { y: 2020, m: 7, d: 12, h: 10, min: 20, s: 30, w: 2118, mow: 296448 },
+        { y: 2024, m: 0, d: 1, h: 0, min: 0, s: 0, w: 2295, mow: 86418 },
+        { y: 2026, m: 0, d: 24, h: 14, min: 0, s: 0, w: 2402, mow: 568818 }
+      ];
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="epoch" class="col-sm-1 col-form-label-sm">Epoch</label>
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control form-control-sm"
-                id="epoch"
-                type="text"
-                style="text-align: center"
-                disabled
-              />
-            </div>
-          </div>
+      // 1. Bidirectional: UTC to GPS
+      testData.forEach(t => {
+        const utcMs = Date.UTC(t.y, t.m, t.d, t.h, t.min, t.s);
+        const unixMs = unixTimeFromUTCTime(utcMs);
+        const dt = unixMs - gpsT0;
+        const week = Math.floor(dt / 604800000);
+        const tow = Math.floor((dt - week * 604800000) / 1000);
 
-          <!-- Text input-->
-          <div class="row mb-3">
-            <label for="leapSeconds" class="col-sm-1 col-form-label-sm"
-              >UTC Leap Seconds</label
-            >
-            <div class="col-sm-2" style="min-width: 275px">
-              <input
-                class="form-control form-control-sm"
-                id="leapSeconds"
-                type="text"
-                style="text-align: center"
-                disabled
-              />
-            </div>
-          </div>
-        </fieldset>
-      </form>
-    </div>
-  </body>
+        const input = `${t.y}-${String(t.m + 1).padStart(2, '0')}-${String(t.d).padStart(2, '0')} ${String(t.h).padStart(2, '0')}:${String(t.min).padStart(2, '0')}:${String(t.s).padStart(2, '0')} UTC`;
+        const actual = `W:${week} T:${tow}`;
+        const expected = `W:${t.w} T:${t.mow}`;
+        logTest("UTC → GPS", input, expected, actual, (week === t.w && tow === t.mow));
+      });
+
+      // 2. Bidirectional: GPS to UTC
+      testData.forEach(t => {
+        const diffMs = (t.w * 604800 + t.mow) * 1000;
+        const unixMs = gpsT0 + diffMs;
+        const leapMs = leapMilliseconds(unixMs);
+        const utcMs = unixMs - leapMs;
+        const isLeapS = isDuringLeapSecond(unixMs);
+        const date = new Date(isLeapS ? utcMs - 1000 : utcMs);
+
+        const actualS = isLeapS ? date.getUTCSeconds() + 1 : date.getUTCSeconds();
+        const actual = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')} ${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(actualS).padStart(2, '0')}`;
+        const input = `W:${t.w} T:${t.mow}`;
+        const expected = `${t.y}-${String(t.m + 1).padStart(2, '0')}-${String(t.d).padStart(2, '0')} ${String(t.h).padStart(2, '0')}:${String(t.min).padStart(2, '0')}:${String(t.s).padStart(2, '0')}`;
+        logTest("GPS → UTC", input, expected, actual, actual === expected);
+      });
+
+      // Build Premium Report Table
+      let html = '<table style="width:100%; min-width: 650px; border-collapse: collapse; font-family: inherit; color: var(--text-primary);">';
+      html += '<thead style="background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--accent-color);">';
+      html += '<tr><th style="padding: 0.5rem 1rem; text-align: left;">Category</th><th style="padding: 0.5rem 1rem; text-align: left;">Input Value</th>';
+      html += '<th style="padding: 0.5rem 1rem; text-align: left;">Target</th><th style="padding: 0.5rem 1rem; text-align: left;">System Result</th><th style="padding: 0.5rem 1rem; text-align: center;">Status</th></tr></thead><tbody>';
+
+      results.forEach(r => {
+        const statusColor = r.pass ? "#10b981" : "#ef4444";
+        const statusText = r.pass ? "PASSED" : "FAILED";
+        html += `<tr style="border-bottom: 1px solid var(--card-border); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">`;
+        html += `<td style="padding: 0.4rem 1rem; font-weight: 600; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">${r.type}</td>`;
+        html += `<td style="padding: 0.4rem 1rem; font-family: monospace; font-size: 0.85rem;">${r.input}</td>`;
+        html += `<td style="padding: 0.4rem 1rem; font-family: monospace; font-size: 0.85rem; color: #94a3b8;">${r.expected}</td>`;
+        html += `<td style="padding: 0.4rem 1rem; font-family: monospace; font-size: 0.85rem;">${r.actual}</td>`;
+        html += `<td style="padding: 0.4rem 1rem; text-align: center;"><span style="display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 900; background: ${statusColor}22; color: ${statusColor}; border: 1px solid ${statusColor}44;">${statusText}</span></td>`;
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      return html;
+    }
+
+    // General idea for everything that follows: all times are in Javascript's
+    // "Unix" time, which is a monotonic clock.
+
+    function juneLeap(year) {
+      return Date.UTC(year, 6, 1);
+    }
+
+    function decemberLeap(year) {
+      return Date.UTC(year + 1, 0, 1);
+    }
+
+    const LEAP_SECONDS = [
+      0,
+      juneLeap(1972),
+      decemberLeap(1972),
+      decemberLeap(1973),
+      decemberLeap(1974),
+      decemberLeap(1975),
+      decemberLeap(1976),
+      decemberLeap(1977),
+      decemberLeap(1978),
+      decemberLeap(1979),
+      juneLeap(1981),
+      juneLeap(1982),
+      juneLeap(1983),
+      juneLeap(1985),
+      decemberLeap(1987),
+      decemberLeap(1989),
+      decemberLeap(1990),
+      juneLeap(1992),
+      juneLeap(1993),
+      juneLeap(1994),
+      decemberLeap(1995),
+      juneLeap(1997),
+      decemberLeap(1998),
+      decemberLeap(2005),
+      decemberLeap(2008),
+      juneLeap(2012),
+      juneLeap(2015),
+      decemberLeap(2016),
+    ];
+
+    /**
+     * Calculates the number of leap seconds for a given monotonic Unix timestamp.
+     * Unix time accumulates leap seconds linearly.
+     * @param {number} t - Unix timestamp in milliseconds.
+     * @returns {number} Number of leap seconds.
+     */
+    function leapSecondsForUnixTime(t) {
+      let n = LEAP_SECONDS.length;
+      let leap = 0;
+      for (; leap != n - 1; leap++) {
+        if (
+          t >= LEAP_SECONDS[leap] + leap * 1000 &&
+          t < LEAP_SECONDS[leap + 1] + (leap + 1) * 1000
+        ) {
+          return leap;
+        }
+      }
+      return leap;
+    }
+
+    /**
+     * Calculates the number of leap seconds for a given UTC timestamp.
+     * @param {number} t - UTC timestamp in milliseconds.
+     * @returns {number} Number of leap seconds.
+     */
+    function leapSecondsForUtcTime(t) {
+      let n = LEAP_SECONDS.length;
+      let leap = 0;
+      for (; leap != n - 1; leap++) {
+        if (t >= LEAP_SECONDS[leap] && t < LEAP_SECONDS[leap + 1] + 1000) {
+          return leap;
+        }
+      }
+      return leap;
+    }
+
+    function isDuringLeapSecond(time) {
+      return leapSecondsForUnixTime(time) != leapSecondsForUnixTime(time + 1000);
+    }
+
+    function leapMilliseconds(t) {
+      return leapSecondsForUnixTime(t) * 1000;
+    }
+
+    /**
+     * Converts a UTC timestamp (milliseconds) to a Unix timestamp (milliseconds),
+     * correctly accounting for the accumulation of leap seconds.
+     * @param {number} utcTime - The UTC time in milliseconds.
+     * @returns {number} The corresponding Unix timestamp.
+     */
+    function unixTimeFromUTCTime(utcTime) {
+      return utcTime + leapSecondsForUtcTime(utcTime) * 1000;
+    }
+
+    // These are in unix time
+    const gpsT0 = Date.UTC(1980, 0, 6) + 9000;
+    const bdsT0 = Date.UTC(2006, 0, 1) + 23000;
+
+    // Helper to update elements
+    const $ = id => document.getElementById(id);
+
+    /**
+     * Updates the UI with GPS Time details (Week and TOW).
+     * @param {number} unixTime - Monotonic Unix timestamp in milliseconds.
+     */
+    function setGPSTime(unixTime) {
+      const leap = leapSecondsForUnixTime(unixTime) - leapSecondsForUnixTime(gpsT0);
+      const dt = unixTime - gpsT0;
+      const weeks = Math.floor(dt / 604800000);
+      const tow = (dt - weeks * 604800000) / 1000;
+
+      $('gpsWeek').value = weeks;
+      $('gpsTOW').value = tow;
+      $('gpsLeapSecondsDisplay').textContent = leap;
+    }
+
+    /**
+     * Updates the UI with BeiDou Time details (Week and TOW).
+     * @param {number} unixTime - Monotonic Unix timestamp in milliseconds.
+     */
+    function setBeiDouTime(unixTime) {
+      const leap = leapSecondsForUnixTime(unixTime) - leapSecondsForUnixTime(bdsT0);
+      const dt = unixTime - bdsT0;
+      const weeks = Math.floor(dt / 604800000);
+      const tow = (dt - weeks * 604800000) / 1000;
+
+      $('bdsWeek').value = weeks;
+      $('bdsTOW').value = tow;
+      $('bdsLeapSecondsDisplay').textContent = leap;
+    }
+
+    /**
+     * Updates the UI with the Calendar representation of the given time.
+     * @param {number} unixTime - Monotonic Unix timestamp in milliseconds.
+     */
+    function setCalendarTime(unixTime) {
+      const utcTime = unixTime - leapMilliseconds(unixTime);
+      const date = new Date(isDuringLeapSecond(unixTime) ? utcTime - 1000 : utcTime);
+
+      $('year').value = date.getUTCFullYear();
+      $('month').value = date.getUTCMonth();
+      $('day').value = date.getUTCDate();
+      $('hours').value = date.getUTCHours();
+      $('minutes').value = date.getUTCMinutes();
+
+      if (isDuringLeapSecond(unixTime)) {
+        $('seconds').value = date.getUTCSeconds() + 1;
+        $('fullDateDisplay').textContent = "During leap second insertion...";
+      } else {
+        $('seconds').value = date.getUTCSeconds();
+        $('fullDateDisplay').textContent = date.toUTCString();
+      }
+      $('leapSecondsDisplay').textContent = leapMilliseconds(unixTime) / 1000;
+    }
+
+    /**
+     * Updates the UI with the Day of Year (DOY) value.
+     * Outputs a fractional decimal DOY (days since start of year).
+     * @param {number} time - Monotonic Unix timestamp in milliseconds.
+     */
+    function setDOYTime(time) {
+      const date = new Date(time);
+      const yearStart = Date.UTC(date.getUTCFullYear(), 0, 1);
+      const daysInYear = (time - yearStart) / (86400 * 1000);
+      $('doy').value = daysInYear.toFixed(3);
+    }
+
+    /**
+     * Updates the UI with the Decimal Epoch (Decimal Year) value.
+     * @param {number} time - Monotonic Unix timestamp in milliseconds.
+     */
+    function setEpochTime(time) {
+      const date = new Date(time);
+      const yearEnd = Date.UTC(date.getUTCFullYear() + 1, 0, 1);
+      const yearStart = Date.UTC(date.getUTCFullYear(), 0, 1);
+      const daysInYear = (yearEnd - yearStart) / (86400 * 1000);
+      const daysIntoYear = (time - yearStart) / (86400 * 1000);
+      const epoch = (date.getUTCFullYear() + daysIntoYear / daysInYear).toFixed(3);
+      $('epochDisplay').textContent = epoch;
+    }
+
+    /**
+     * Updates the UI with the Unix timestamp (seconds).
+     * @param {number} time - Monotonic Unix timestamp in milliseconds.
+     */
+    function setUnixTime(time) {
+      $('unix').value = (time / 1000).toFixed(0);
+    }
+
+    /**
+     * Synchronizes all time displays across the application based on a single point in time.
+     * @param {number} time - Monotonic Unix timestamp in milliseconds.
+     */
+    function setTime(time) {
+      setGPSTime(time);
+      setBeiDouTime(time);
+      setCalendarTime(time);
+      setDOYTime(time);
+      setEpochTime(time);
+      setUnixTime(time);
+    }
+
+    // Input Handlers
+    function onGPSTime() {
+      const weeks = parseInt($('gpsWeek').value) || 0;
+      const tow = parseInt($('gpsTOW').value) || 0;
+      const diff = (weeks * 604800 + tow) * 1000;
+      setTime(gpsT0 + diff);
+    }
+
+    function onBeiDouTime() {
+      const weeks = parseInt($('bdsWeek').value) || 0;
+      const tow = parseInt($('bdsTOW').value) || 0;
+      const diff = (weeks * 604800 + tow) * 1000;
+      setTime(bdsT0 + diff);
+    }
+
+    function onCalendarTime() {
+      const time = Date.UTC(
+        $('year').value,
+        $('month').value,
+        $('day').value,
+        $('hours').value,
+        $('minutes').value,
+        $('seconds').value
+      );
+      setTime(unixTimeFromUTCTime(time));
+    }
+
+    function onDoyTime() {
+      const time = Date.UTC($('year').value, 0, 1);
+      // Converts fractional Days of Year back into a monotonic Unix timestamp.
+      setTime(time + parseFloat($('doy').value) * 86400000);
+    }
+
+    function onUnixTime() {
+      setTime(parseInt($('unix').value) * 1000);
+    }
+
+    /**
+     * UI Initialization & Spinner Logic
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Init with current time
+      setTime(new Date().getTime());
+
+      // Setup Spinner Buttons
+      document.querySelectorAll('.spinner-wrapper[data-spinner]').forEach(wrapper => {
+        const input = wrapper.querySelector('input');
+        const targetId = wrapper.dataset.spinner;
+
+        wrapper.querySelector('.minus').onclick = () => {
+          const step = parseFloat(input.dataset.step) || 1;
+          input.value = (parseFloat(input.value) || 0) - step;
+          input.dispatchEvent(new Event('change'));
+        };
+
+        wrapper.querySelector('.plus').onclick = () => {
+          const step = parseFloat(input.dataset.step) || 1;
+          input.value = (parseFloat(input.value) || 0) + step;
+          input.dispatchEvent(new Event('change'));
+        };
+      });
+
+      // Bind Change Events
+      $('gpsWeek').onchange = onGPSTime;
+      $('gpsTOW').onchange = onGPSTime;
+      $('bdsWeek').onchange = onBeiDouTime;
+      $('bdsTOW').onchange = onBeiDouTime;
+
+      $('year').onchange = onCalendarTime;
+      $('month').onchange = onCalendarTime;
+      $('day').onchange = onCalendarTime;
+      $('hours').onchange = onCalendarTime;
+      $('minutes').onchange = onCalendarTime;
+      $('seconds').onchange = onCalendarTime;
+
+      $('doy').onchange = onDoyTime;
+      $('unix').onchange = onUnixTime;
+
+      // Allow 'Enter' to trigger change
+      document.querySelectorAll('input').forEach(input => {
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            input.blur();
+            input.focus();
+          }
+        };
+      });
+
+      // Secret Test Interaction
+      $('mainTitle').onclick = (e) => {
+        if (e.ctrlKey) {
+          const card = $('testCard');
+          if (card.style.display === 'none') {
+            $('testOutput').innerHTML = runTests();
+            card.style.display = 'block';
+            card.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            card.style.display = 'none';
+          }
+        }
+      };
+    });
+  </script>
+
+</body>
+
 </html>
