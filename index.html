@@ -641,11 +641,25 @@
               <button class="spinner-btn plus" type="button">&plus;</button>
             </div>
           </div>
-          <div class="input-group">
-            <label>GLO Offset from UTC (Leap Seconds)</label>
-            <div class="info-value copyable" id="gloOffsetDisplay">0s (UTC+3h)</div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="input-group">
+              <label for="gloN4">N4</label>
+              <div class="spinner-wrapper" data-spinner="gloN4">
+                <button class="spinner-btn minus" type="button" disabled>&minus;</button>
+                <input type="text" id="gloN4" class="form-input" value="0" readonly>
+                <button class="spinner-btn plus" type="button" disabled>&plus;</button>
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="gloNA">NA</label>
+              <div class="spinner-wrapper" data-spinner="gloNA">
+                <button class="spinner-btn minus" type="button" disabled>&minus;</button>
+                <input type="text" id="gloNA" class="form-input" value="0" readonly>
+                <button class="spinner-btn plus" type="button" disabled>&plus;</button>
+              </div>
+            </div>
           </div>
-          <span class="rollover-indicator">⚠️ Untested</span>
         </section>
       </div>
 
@@ -760,12 +774,30 @@
         </div>
       </section>
 
-      <!-- Test Results Section (Hidden by default) -->
+      <!-- System Verification Section (Hidden by default) -->
       <section id="testCard" class="section-card readonly-card" style="grid-column: 1 / -1; display: none;">
         <h2 class="section-title" style="cursor: pointer;"
           onclick="document.getElementById('testCard').style.display='none'" title="Click to hide">System Integrity
           Verification</h2>
         <div id="testOutput"
+          style="overflow-x: auto; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--card-border);">
+        </div>
+      </section>
+
+      <!-- Component Verification Section (Hidden by default) -->
+      <section id="componentTestCard" class="section-card readonly-card" style="grid-column: 1 / -1; display: none;">
+        <h2 class="section-title" style="cursor: pointer;"
+          onclick="document.getElementById('componentTestCard').style.display='none'" title="Click to hide">Component
+          Output Verification</h2>
+        <div class="input-group" style="padding: 1rem; border-bottom: 1px solid var(--card-border); margin-bottom: 0;">
+          <label for="testCaseSelect">Select Test Case</label>
+          <select id="testCaseSelect" class="form-input"
+            style="background: rgba(0,0,0,0.2); border: 1px solid var(--input-border); color: var(--text-primary); margin-top: 0.5rem;"
+            onchange="updateComponentTests()">
+            <option value="all">Run All Cases</option>
+          </select>
+        </div>
+        <div id="componentTestOutput"
           style="overflow-x: auto; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--card-border);">
         </div>
       </section>
@@ -837,7 +869,7 @@
 
       /**
        * Comprehensive test data generated using the 'gpstime' Python package.
-       * Provides industry-standard reference points across several leap-second eras.
+       * Provides times across a leap-second.
        */
       const testData = [
         { y: 1980, m: 0, d: 6, h: 0, min: 0, s: 0, w: 0, mow: 0 },
@@ -894,7 +926,7 @@
         logTest("GPS → UTC", input, expected, actual, actual === expected, unixMs);
       });
 
-      // Build Premium Report Table
+      // Build Report Table
       let html = '<table style="width:100%; min-width: 650px; border-collapse: collapse; font-family: inherit; color: var(--text-primary);">';
       html += '<thead style="background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--accent-color);">';
       html += '<tr><th style="padding: 0.5rem 1rem; text-align: left;">Category</th><th style="padding: 0.5rem 1rem; text-align: left;">Input Value</th>';
@@ -940,6 +972,153 @@
         logTest("Fuzzing", `Sample ${i + 1}: ${inputStr}`, "Δ < 1ms", `Err: ${Math.abs(randMs - backToUtc).toFixed(1)}ms`, pass, unix);
       }
 
+      html += '</tbody></table>';
+      return html;
+    }
+
+    /**
+     * Component Output Verification Truth Data
+     */
+    const componentTruthData = [
+      {
+        name: "2026-01-24 23:59:42.000 UTC",
+        expected: {
+          'gpsWeek': '2403',
+          'gpsTOW': '0',
+          'gstWeek': '1379',
+          'gstTOW': '0',
+          'bdsWeek': '1046',
+          'bdsTOW': '604787',
+          'utcTimeDisplay': '2026-01-24 23:59:42.000 UTC',
+          'gpsTimeDisplay': '2026-01-25 00:00:00.000 GPS',
+          'taiTimeDisplay': '2026-01-25 00:00:19.000 TAI',
+          'rinexDisplay': '> 2026 01 25 00 00 00.0000000',
+          'gloN4': '7',
+          'gloNA': '756'
+        }
+      },
+      {
+        name: "2016-12-31 23:59:59.000 UTC (before leap second)",
+        expected: {
+          'gpsWeek': '1930',
+          'gpsTOW': '16',
+          'gstWeek': '906',
+          'gstTOW': '16',
+          'bdsWeek': '574',
+          'bdsTOW': '3',
+          'utcTimeDisplay': '2016-12-31 23:59:59.000 UTC',
+          'gpsTimeDisplay': '2017-01-01 00:00:16.000 GPS',
+          'taiTimeDisplay': '2017-01-01 00:00:35.000 TAI',
+          'rinexDisplay': '> 2017 01 01 00 00 16.0000000',
+          'gloN4': '5',
+          'gloNA': '367'
+        }
+      },
+      {
+        name: "2016-12-31 23:59:60.000 UTC (during leap second)",
+        expected: {
+          'gpsWeek': '1930',
+          'gpsTOW': '17',
+          'gstWeek': '906',
+          'gstTOW': '17',
+          'bdsWeek': '574',
+          'bdsTOW': '4',
+          'utcTimeDisplay': '2016-12-31 23:59:60.000 UTC',
+          'gpsTimeDisplay': '2017-01-01 00:00:17.000 GPS',
+          'taiTimeDisplay': '2017-01-01 00:00:36.000 TAI',
+          'rinexDisplay': '> 2017 01 01 00 00 17.0000000',
+          'gloN4': '5',
+          'gloNA': '367'
+        }
+      },
+      {
+        name: "2017-01-01 00:00:00.000 UTC (after leap second)",
+        expected: {
+          'gpsWeek': '1930',
+          'gpsTOW': '18',
+          'gstWeek': '906',
+          'gstTOW': '18',
+          'bdsWeek': '574',
+          'bdsTOW': '5',
+          'utcTimeDisplay': '2017-01-01 00:00:00.000 UTC',
+          'gpsTimeDisplay': '2017-01-01 00:00:18.000 GPS',
+          'taiTimeDisplay': '2017-01-01 00:00:37.000 TAI',
+          'rinexDisplay': '> 2017 01 01 00 00 18.0000000',
+          'gloN4': '5',
+          'gloNA': '367'
+        }
+      }
+    ];
+
+    function populateTestCaseDropdown() {
+      const select = $('testCaseSelect');
+      const currentVal = select.value;
+
+      // Clear existing numbered options
+      let html = '<option value="all">Run All Cases</option>';
+      componentTruthData.forEach((test, index) => {
+        html += `<option value="${index}">${test.name}</option>`;
+      });
+      select.innerHTML = html;
+
+      if (currentVal) select.value = currentVal;
+    }
+
+    function updateComponentTests() {
+      $('componentTestOutput').innerHTML = runComponentTests();
+    }
+
+    function runComponentTests() {
+      const selectedValue = $('testCaseSelect').value;
+      const dataToRun = selectedValue === 'all'
+        ? componentTruthData
+        : [componentTruthData[parseInt(selectedValue)]];
+
+      const results = [];
+      dataToRun.forEach((test) => {
+        // Set state from expected GPS time
+        const week = parseInt(test.expected.gpsWeek);
+        const tow = parseFloat(test.expected.gpsTOW);
+        const internalTime = gpsT0 + (week * 604800 + tow) * 1000;
+        setTime(internalTime);
+
+        for (const [id, expectedVal] of Object.entries(test.expected)) {
+          const el = $(id);
+          if (!el) continue;
+
+          let actualVal = '';
+          if (el.tagName === 'INPUT') {
+            actualVal = el.value;
+          } else {
+            actualVal = el.textContent.trim();
+          }
+
+          results.push({
+            testName: test.name,
+            id: id,
+            expected: expectedVal,
+            actual: actualVal,
+            pass: actualVal === expectedVal
+          });
+        }
+      });
+
+      let html = '<table style="width:100%; border-collapse: collapse; font-family: inherit; color: var(--text-primary);">';
+      html += '<thead style="background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--accent-color);">';
+      html += '<tr><th style="padding: 0.5rem 1rem; text-align: left;">Test Scenario</th><th style="padding: 0.5rem 1rem; text-align: left;">Element ID</th>';
+      html += '<th style="padding: 0.5rem 1rem; text-align: left;">Expected Value</th><th style="padding: 0.5rem 1rem; text-align: left;">Component Value</th><th style="padding: 0.5rem 1rem; text-align: center;">Status</th></tr></thead><tbody>';
+
+      results.forEach(r => {
+        const statusColor = r.pass ? "#10b981" : "#ef4444";
+        const statusText = r.pass ? "MATCH" : "MISMATCH";
+        html += `<tr style="border-bottom: 1px solid var(--card-border);">`;
+        html += `<td style="padding: 0.4rem 1rem; font-size: 0.8rem; color: var(--text-secondary);">${r.testName}</td>`;
+        html += `<td style="padding: 0.4rem 1rem; font-family: monospace; font-size: 0.85rem;">#${r.id}</td>`;
+        html += `<td style="padding: 0.4rem 1rem; font-family: monospace; font-size: 0.85rem; color: #94a3b8;">${r.expected}</td>`;
+        html += `<td style="padding: 0.4rem 1rem; font-family: monospace; font-size: 0.85rem;">${r.actual}</td>`;
+        html += `<td style="padding: 0.4rem 1rem; text-align: center;"><span style="background: ${statusColor}22; color: ${statusColor}; padding: 2px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 900; border: 1px solid ${statusColor}44;">${statusText}</span></td>`;
+        html += '</tr>';
+      });
       html += '</tbody></table>';
       return html;
     }
@@ -1069,7 +1248,7 @@
 
     // These are in unix time
     const gpsT0 = Date.UTC(1980, 0, 6) + 9000; // 9 leap seconds have occurred between 1970 and 1980
-    const bdsT0 = Date.UTC(2006, 0, 1) + 23000; // 23 leap seconds have occurred between 1970 and 2006
+    const bdsT0 = Date.UTC(2006, 0, 1) + 22000; // BDS epoch is typically Jan 1, 2006 00:00:14 GPS (or 00:00:00 UTC)
     const gstT0 = gpsT0 + (1024 * 604800000); // Galileo System Time starts 1024 weeks after GPS
 
     /*
@@ -1129,7 +1308,9 @@
     }
 
     function isDuringLeapSecond(time) {
-      return leapSecondsForUnixTime(time) != leapSecondsForUnixTime(time + 1000);
+      const current = leapSecondsForUnixTime(time);
+      const next = leapSecondsForUnixTime(time + 1000);
+      return current !== next;
     }
 
     function leapMillisecondsForUnixTime(t) {
@@ -1222,7 +1403,14 @@
 
       $('gloHours').value = hoursIntoDay;
       $('gloSeconds').value = secondsIntoDay.toFixed(3);
-      $('gloOffsetDisplay').textContent = `0s from UTC (PZ-90: UTC+3h)`;
+
+
+      // GLO N4 & NA (Day in 4-year cycle)
+      const diff = Math.floor((gloMs - Date.UTC(1996, 0, 1)) / 86400000);
+      const n4 = Math.floor(diff / 1461); // 1461 days in 4 years
+      const na = (diff % 1461) + 1;
+      if ($('gloN4')) $('gloN4').value = n4;
+      if ($('gloNA')) $('gloNA').value = na;
     }
 
     function setScientificTimes(unixTime) {
@@ -1444,7 +1632,8 @@
     }
 
     function onUnixTime() {
-      setTime(parseInt($('unix').value) * 1000);
+      const utc = parseInt($('unix').value) * 1000;
+      setTime(unixTimeFromUTCTime(utc));
     }
 
     function onEpochTime() {
@@ -1597,14 +1786,19 @@
       $('mainTitle').onclick = (e) => {
         if (e.ctrlKey) {
           const card = $('testCard');
+          const compCard = $('componentTestCard');
           if (card.style.display === 'none') {
             $('testOutput').innerHTML = runTests();
+            populateTestCaseDropdown();
+            $('componentTestOutput').innerHTML = runComponentTests();
             card.style.display = 'block';
+            compCard.style.display = 'block';
             card.scrollIntoView({
               behavior: 'smooth'
             });
           } else {
             card.style.display = 'none';
+            compCard.style.display = 'none';
           }
         }
       };
@@ -1636,7 +1830,7 @@
           gps: { week: $('gpsWeek').value, tow: $('gpsTOW').value, leap_seconds: $('gpsLeapSecondsDisplay').textContent, rollover_era: $('gpsRollover').textContent },
           bds: { week: $('bdsWeek').value, tow: $('bdsTOW').value, leap_seconds: $('bdsLeapSecondsDisplay').textContent },
           galileo: { week: $('gstWeek').value, tow: $('gstTOW').value, leap_seconds: $('gstLeapSecondsDisplay').textContent },
-          glonass: { hours: $('gloHours').value, seconds: $('gloSeconds').value, offset: $('gloOffsetDisplay').textContent },
+          glonass: { hours: $('gloHours').value, seconds: $('gloSeconds').value },
           unix: $('unix').value,
           doy: $('doy').value,
           decimal_epoch: $('epoch').value,
