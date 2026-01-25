@@ -1724,8 +1724,25 @@
     /**
      * UI Initialization & Spinner Logic
      */
+    let autoUpdateActive = true;
     document.addEventListener('DOMContentLoaded', () => {
-      setTime(new Date().getTime());
+      // Initialize with current time rounded to integer seconds
+      setTime(Math.floor(Date.now() / 1000) * 1000);
+
+      // Auto-update every second until manual interaction
+      const autoUpdateInterval = setInterval(() => {
+        if (autoUpdateActive) {
+          setTime(Math.floor(Date.now() / 1000) * 1000);
+        } else {
+          clearInterval(autoUpdateInterval);
+        }
+      }, 1000);
+
+      const stopAutoUpdate = () => {
+        if (autoUpdateActive) {
+          autoUpdateActive = false;
+        }
+      };
 
       // Setup Spinner Buttons
       document.querySelectorAll('.spinner-wrapper[data-spinner]').forEach(wrapper => {
@@ -1733,16 +1750,24 @@
         const targetId = wrapper.dataset.spinner;
 
         wrapper.querySelector('.minus').onclick = () => {
+          stopAutoUpdate();
           const step = parseFloat(input.dataset.step) || 1;
           input.value = (parseFloat(input.value) || 0) - step;
           input.dispatchEvent(new Event('change'));
         };
 
         wrapper.querySelector('.plus').onclick = () => {
+          stopAutoUpdate();
           const step = parseFloat(input.dataset.step) || 1;
           input.value = (parseFloat(input.value) || 0) + step;
           input.dispatchEvent(new Event('change'));
         };
+      });
+
+      // Stop auto-update on any manual input or change
+      document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', stopAutoUpdate);
+        el.addEventListener('change', stopAutoUpdate);
       });
 
       // Bind Change Events
