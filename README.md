@@ -6,18 +6,16 @@ A single file HTML utility for converting between various Global Navigation Sate
 
 ## Basic Functionality
 
-- **GNSS Time Scales**: Bidirectional conversion for GPS, BeiDou (BDS), Galileo (GST), and GLONASS.
-- **Scientific Formats**: Support for Julian Date (JD), Modified Julian Date (MJD), and Atomic Time (TAI).
+- **GNSS Time Scales**: Conversion for GPS, BeiDou (BDS), Galileo (GST), and GLONASS time scales and representations.
+- **Astronomical Formats**: Support for Julian Date (JD), Modified Julian Date (MJD).
 - **Calendar & UTC**: Convert to/from UTC with full leap second history and GPS rollover awareness.
-- **Industry Standards**: Real-time RINEX 3.0 timestamp generation.
-- **Data Export**: 
+- **Industry Standards**: RINEX timestamps for searching in RINEX files.
+- **Theme Support**: Dark, Light, and System-follow modes.
+- **Export**: 
   - `Ctrl + Click` anywhere on a card to copy the entire section as JSON.
   - "Copy All" floating button for a complete system snapshot.
-- **Theme Support**: Dark, Light, and System-follow modes.
+- **Tests**: Built-in test cases for verification. CTRL-click over the page title to run.
 
 ## Screenshot
 
 <img width="600" alt="image" src="https://github.com/user-attachments/assets/daac9edc-7ee9-41c1-944e-17d4ad796641" />
-
----
-*Static HTML implementation. No backend required.*
