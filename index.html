@@ -1006,6 +1006,29 @@
       /* 27 */ decemberLeap(2016),
     ];
 
+    // These are in unix time
+    const gpsT0 = Date.UTC(1980, 0, 6) + 9000; // 9 leap seconds have occurred between 1970 and 1980
+    const bdsT0 = Date.UTC(2006, 0, 1) + 23000; // 23 leap seconds have occurred between 1970 and 2006
+    const gstT0 = gpsT0 + (1024 * 604800000); // Galileo System Time starts 1024 weeks after GPS
+
+    /*
+
+    General Idea:
+    - We have one time, which is the number of milliseconds since the Unix epoch
+      1970-01-01 00:00:00 UTC.
+    - This is a monotonic time scale; it has no leap seconds.
+    - When converting from this time, we have to account for leap seconds.
+      - For UTC, we have to account for the leap seconds that have occurred 
+        since the Unix epoch. This means subtracting 
+        `leapSecondsForUnixTime(unixTime)`, as the UTC time will always be behind the
+        Unix time by the number of leap seconds.
+      - For GPS time, we have to account for the leap seconds that have occurred
+        since the GPS epoch. This means subtracting 
+        `leapMillisecondsForUnixTime(gpsEpoch)`.
+
+    */
+
+
     /**
      * Calculates the number of leap seconds for a given monotonic Unix timestamp.
      * Unix time accumulates leap seconds linearly.
@@ -1074,10 +1097,6 @@
       return utcTime + leapSecondsForUtcTime(utcTime) * 1000;
     }
 
-    // These are in unix time
-    const gpsT0 = Date.UTC(1980, 0, 6) + 9000;
-    const bdsT0 = Date.UTC(2006, 0, 1) + 23000;
-    const gstT0 = gpsT0 + (1024 * 604800000); // Galileo System Time starts 1024 weeks after GPS
 
 
     // Helper to update elements
@@ -1146,17 +1165,21 @@
     }
 
     function setScientificTimes(unixTime) {
-      // JD = (Unix Time / 86400000) + 2440587.5
-      const jd = (unixTime / 86400000) + 2440587.5;
-      const mjd = jd - 2400000.5;
-      // TAI = UTC + Leap Seconds + 10s (standard offset)
-      // Actually TAI = GPS + 19s
-      const taiMs = unixTime + 19000;
-      const taiDate = new Date(taiMs - leapMillisecondsForUnixTime(taiMs)); // This is a simplification for display
+      const adjustedTime = getAdjustedTime(unixTime);
 
+      // JD = (Unix Time / 86400000) + 2440587.5
+      const jd = (adjustedTime / 86400000) + 2440587.5;
+      const mjd = jd - 2400000.5;
       $('jdDisplay').textContent = jd.toFixed(6);
       $('mjdDisplay').textContent = mjd.toFixed(6);
-      $('taiDisplay').textContent = `GPS+19s (~${taiMs / 1000}s)`;
+
+      // TAI was UTC + 10s at 1972-01-01. Thus, TAI is also 10 seconds ahead of 
+      // unix time since 1970-01-01. 
+      // Since that epoch and the start of GPS there were 10 leap seconds added. 
+      // So TAI = GPS + 19s
+      const taiTime = unixTime + 10000;
+      const taiDate = new Date(taiTime);
+      $('taiDisplay').textContent = taiDate.toISOString();
     }
 
     function setRolloverInfo(unixTime) {
