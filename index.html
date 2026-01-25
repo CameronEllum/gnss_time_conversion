@@ -1514,56 +1514,54 @@
       };
 
 
-      // Setup Ctrl+Click to Copy
+      // Setup Ctrl+Click to Copy Section
       document.addEventListener('click', (e) => {
         if (e.ctrlKey) {
-          if (e.target.id === 'mainTitle' || e.target.parentElement?.id === 'mainTitle') return;
+          if (e.target.closest('#mainTitle')) return;
 
-          let target = e.target;
-          let label = "value";
-          let value = "";
+          const section = e.target.closest('.section-card');
+          if (!section) return;
 
-          // Try to find context
-          const card = target.closest('.section-card');
-          const title = card ? card.querySelector('.section-title')?.textContent?.trim() : "Time Data";
+          const sectionTitle = section.querySelector('.section-title')?.textContent?.trim() || "Time Data";
+          const data = {};
 
-          if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
-            value = target.value;
-            // Try to find associated label
-            const group = target.closest('.input-group');
-            label = group ? group.querySelector('label')?.textContent?.trim() : target.id;
-          } else {
-            const container = target.closest('.info-value, .copyable, .spinner-wrapper, .scientific-item');
-            if (container) {
-              const input = container.querySelector('input');
-              value = input ? input.value : container.innerText || container.textContent;
-              label = container.querySelector('.scientific-label')?.textContent?.trim() ||
-                container.previousElementSibling?.textContent?.trim() ||
-                "value";
-            } else {
-              value = target.innerText || target.textContent;
+          section.querySelectorAll('.input-group').forEach(group => {
+            const labelText = group.querySelector('label')?.textContent?.replace(/:$/, '').trim();
+            const input = group.querySelector('input, select');
+            const info = group.querySelector('.info-value');
+
+            if (labelText) {
+              if (input) {
+                data[labelText] = input.tagName === 'SELECT' ? input.options[input.selectedIndex].text : input.value;
+              } else if (info) {
+                data[labelText] = info.textContent.trim();
+              }
             }
-          }
+          });
 
-          if (value && value.trim()) {
-            const cleanVal = value.trim();
-            const copyJson = {
-              source: title,
-              field: label,
-              value: cleanVal
-            };
+          // Also check for scientific grid items if applicable
+          section.querySelectorAll('.scientific-item').forEach(item => {
+            const label = item.querySelector('.scientific-label')?.textContent?.trim();
+            const value = item.querySelector('.info-value')?.textContent?.trim();
+            if (label && value) data[label] = value;
+          });
 
-            copyToClipboard(JSON.stringify(copyJson, null, 2));
+          const rollover = section.querySelector('.rollover-indicator');
+          if (rollover) data["Status/Info"] = rollover.textContent.trim();
 
-            const originalBg = target.style.background;
-            target.style.background = 'rgba(79, 70, 229, 0.2)';
-            setTimeout(() => { target.style.background = originalBg; }, 200);
+          copyToClipboard(JSON.stringify({ source: sectionTitle, values: data }, null, 2));
+          flashElement(section);
 
-            e.preventDefault();
-            e.stopPropagation();
-          }
+          e.preventDefault();
+          e.stopPropagation();
         }
       }, true);
+
+      function flashElement(el) {
+        const originalBg = el.style.background;
+        el.style.background = 'rgba(79, 70, 229, 0.2)';
+        setTimeout(() => { el.style.background = originalBg; }, 200);
+      }
 
 
 
