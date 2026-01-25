@@ -2,6 +2,8 @@
 
 A single file HTML utility for converting between various Global Navigation Satellite System (GNSS) time scales and standardized formats.
 
+[View the GNSS Time Converter](https://cameronellum.github.io/gnss_time_conversion/)
+
 ## 🚀 Basic Functionality
 
 - **GNSS Time Scales**: Bidirectional conversion for GPS, BeiDou (BDS), Galileo (GST), and GLONASS.
@@ -13,9 +15,9 @@ A single file HTML utility for converting between various Global Navigation Sate
   - "Copy All" floating button for a complete system snapshot.
 - **Theme Support**: Dark, Light, and System-follow modes.
 
-## 📊 Live Demo
+## Screenshot
 
-[View the GNSS Time Converter](https://cameronellum.github.io/gnss_time_conversion/)
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/daac9edc-7ee9-41c1-944e-17d4ad796641" />
 
 ---
 *Static HTML implementation. No backend required.*
