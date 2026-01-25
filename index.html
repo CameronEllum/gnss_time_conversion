@@ -186,13 +186,14 @@
 
     label {
       font-size: 0.875rem;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-secondary);
     }
 
     .spinner-wrapper {
       display: flex;
       align-items: stretch;
+      height: 3rem;
       background: var(--input-bg);
       border: 1px solid var(--input-border);
       border-radius: var(--radius-md);
@@ -242,10 +243,11 @@
 
     .form-input {
       flex: 1;
+      height: 100%;
       background: transparent;
       border: none;
       color: var(--text-primary);
-      padding: 0.75rem 0.5rem;
+      padding: 0 0.5rem;
       font-family: inherit;
       font-size: 1rem;
       text-align: center;
@@ -289,9 +291,13 @@
       background: var(--input-bg);
       border: 1px solid var(--input-border);
       border-radius: var(--radius-md);
-      padding: 0.75rem;
+      height: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.75rem;
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 1rem;
       color: var(--display-text);
       word-break: break-all;
     }
@@ -317,10 +323,29 @@
       }
     }
 
-    /* New Styles */
-    .scientific-grid {
+    .gnss-grid-3 {
+      grid-column: 1 / -1;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .gnss-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .gnss-grid-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* New Styles */
+    .scientific-stack {
+      display: flex;
+      flex-direction: column;
       gap: 1rem;
     }
 
@@ -334,7 +359,7 @@
       font-size: 0.75rem;
       font-weight: 600;
       color: var(--text-secondary);
-      text-transform: uppercase;
+      text-transform: none;
     }
 
     .copy-toast {
@@ -543,94 +568,125 @@
         </div>
       </section>
 
-      <!-- BeiDou Section -->
+      <!-- GNSS Row -->
+      <div class="gnss-grid-3">
+        <!-- BeiDou Section -->
+        <section class="section-card">
+          <h2 class="section-title">BeiDou Time (BDS)</h2>
+          <div class="input-group">
+            <label for="bdsWeek">BeiDou Week</label>
+            <div class="spinner-wrapper" data-spinner="bdsWeek">
+              <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
+              <input type="text" id="bdsWeek" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*">
+              <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="bdsTOW">BeiDou Time of Week (TOW)</label>
+            <div class="spinner-wrapper" data-spinner="bdsTOW">
+              <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
+              <input type="text" id="bdsTOW" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*"
+                data-step="1">
+              <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>BDS Leap Seconds (Relative to UTC)</label>
+            <div class="info-value copyable" id="bdsLeapSecondsDisplay">0</div>
+          </div>
+        </section>
+
+        <!-- Galileo Section -->
+        <section class="section-card">
+          <h2 class="section-title">Galileo Time (GST)</h2>
+          <div class="input-group">
+            <label for="gstWeek">Galileo Week</label>
+            <div class="spinner-wrapper" data-spinner="gstWeek">
+              <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
+              <input type="text" id="gstWeek" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*">
+              <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="gstTOW">Galileo Time of Week (TOW)</label>
+            <div class="spinner-wrapper" data-spinner="gstTOW">
+              <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
+              <input type="text" id="gstTOW" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*"
+                data-step="1">
+              <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>GST Leap Seconds (Relative to UTC)</label>
+            <div class="info-value copyable" id="gstLeapSecondsDisplay">0</div>
+          </div>
+        </section>
+
+        <!-- GLONASS Section -->
+        <section class="section-card">
+          <h2 class="section-title">GLONASS Time</h2>
+          <div class="input-group">
+            <label for="gloHours">Hours into Day</label>
+            <div class="spinner-wrapper" data-spinner="gloHours">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="gloHours" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*">
+              <button class="spinner-btn plus" type="button">&plus;</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="gloSeconds">Seconds into Day</label>
+            <div class="spinner-wrapper" data-spinner="gloSeconds">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="gloSeconds" class="form-input" value="0" inputmode="decimal" data-step="1">
+              <button class="spinner-btn plus" type="button">&plus;</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>GLO Offset from UTC (Leap Seconds)</label>
+            <div class="info-value copyable" id="gloOffsetDisplay">0s (UTC+3h)</div>
+          </div>
+          <span class="rollover-indicator">⚠️ Untested</span>
+        </section>
+      </div>
+
+      <!-- Timestamps -->
       <section class="section-card">
-        <h2 class="section-title">BeiDou Time (BDS)</h2>
-        <div class="input-group">
-          <label for="bdsWeek">BeiDou Week</label>
-          <div class="spinner-wrapper" data-spinner="bdsWeek">
-            <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
-            <input type="text" id="bdsWeek" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*">
-            <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+        <h2 class="section-title">Timestamps</h2>
+        <div class="scientific-stack">
+          <div class="scientific-item">
+            <span class="scientific-label">UTC Date/Time</span>
+            <div class="info-value copyable" id="utcTimeDisplay">...</div>
           </div>
-        </div>
-        <div class="input-group">
-          <label for="bdsTOW">BeiDou Time of Week (TOW)</label>
-          <div class="spinner-wrapper" data-spinner="bdsTOW">
-            <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
-            <input type="text" id="bdsTOW" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*"
-              data-step="1">
-            <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
+          <div class="scientific-item">
+            <span class="scientific-label">GPS Date/Time</span>
+            <div class="info-value copyable" id="gpsTimeDisplay">...</div>
           </div>
-        </div>
-        <div class="input-group">
-          <label>BDS Leap Seconds (Relative to UTC)</label>
-          <div class="info-value copyable" id="bdsLeapSecondsDisplay">0</div>
+          <div class="scientific-item">
+            <span class="scientific-label">TAI Date/Time</span>
+            <div class="info-value copyable" id="taiTimeDisplay">...</div>
+          </div>
         </div>
       </section>
 
-      <!-- Galileo Section -->
-      <section class="section-card">
-        <h2 class="section-title">Galileo Time (GST)</h2>
-        <div class="input-group">
-          <label for="gstWeek">Galileo Week</label>
-          <div class="spinner-wrapper" data-spinner="gstWeek">
-            <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
-            <input type="text" id="gstWeek" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*">
-            <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
-          </div>
-        </div>
-        <div class="input-group">
-          <label for="gstTOW">Galileo Time of Week (TOW)</label>
-          <div class="spinner-wrapper" data-spinner="gstTOW">
-            <button class="spinner-btn minus" type="button" aria-label="Decrement">&minus;</button>
-            <input type="text" id="gstTOW" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*"
-              data-step="1">
-            <button class="spinner-btn plus" type="button" aria-label="Increment">&plus;</button>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>GST Leap Seconds (Relative to UTC)</label>
-          <div class="info-value copyable" id="gstLeapSecondsDisplay">0</div>
-        </div>
-      </section>
 
-      <!-- GLONASS Section -->
+      <!-- Other Representations Section -->
       <section class="section-card">
-        <h2 class="section-title">GLONASS Time</h2>
-        <div class="input-group">
-          <label for="gloHours">Hours into Day</label>
-          <div class="spinner-wrapper" data-spinner="gloHours">
-            <button class="spinner-btn minus" type="button">&minus;</button>
-            <input type="text" id="gloHours" class="form-input" value="0" inputmode="numeric" pattern="[0-9]*">
-            <button class="spinner-btn plus" type="button">&plus;</button>
-          </div>
-        </div>
-        <div class="input-group">
-          <label for="gloSeconds">Seconds into Day</label>
-          <div class="spinner-wrapper" data-spinner="gloSeconds">
-            <button class="spinner-btn minus" type="button">&minus;</button>
-            <input type="text" id="gloSeconds" class="form-input" value="0" inputmode="decimal" data-step="1">
-            <button class="spinner-btn plus" type="button">&plus;</button>
-          </div>
-        </div>
-        <div class="input-group">
-          <label>GLO Offset from UTC (Leap Seconds)</label>
-          <div class="info-value copyable" id="gloOffsetDisplay">0s (UTC+3h)</div>
-        </div>
-        <span class="rollover-indicator">⚠️ Untested</span>
-      </section>
-
-
-      <!-- Other Metrics Section -->
-      <section class="section-card">
-        <h2 class="section-title">Calculated Formats</h2>
+        <h2 class="section-title">Other Representations</h2>
         <div class="input-group">
           <label for="doy">Day of Year (DOY)</label>
           <div class="spinner-wrapper" data-spinner="doy">
             <button class="spinner-btn minus" type="button">&minus;</button>
             <input type="text" id="doy" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" min="1"
               max="366" data-step="1">
+            <button class="spinner-btn plus" type="button">&plus;</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="epoch">Decimal Epoch</label>
+          <div class="spinner-wrapper" data-spinner="epoch">
+            <button class="spinner-btn minus" type="button">&minus;</button>
+            <input type="text" id="epoch" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+              data-step="0.001">
             <button class="spinner-btn plus" type="button">&plus;</button>
           </div>
         </div>
@@ -643,51 +699,56 @@
           </div>
         </div>
         <div class="input-group">
-          <label>Decimal Epoch</label>
-          <div class="info-value copyable" id="epochDisplay">0.000</div>
-        </div>
-        <div class="input-group">
           <label>UTC Leap Seconds (Total)</label>
           <div class="info-value copyable" id="leapSecondsDisplay">0</div>
         </div>
       </section>
 
-      <!-- Scientific Times Section -->
-      <section class="section-card" style="grid-column: 1 / -1;">
-        <h2 class="section-title">Scientific Time Grouping</h2>
-        <div class="scientific-grid">
+      <!-- Astronomic Times -->
+      <section class="section-card">
+        <h2 class="section-title">Astronomic Times</h2>
+        <div class="scientific-stack">
           <div class="scientific-item">
-            <span class="scientific-label">Julian Date (JD)</span>
-            <div class="info-value copyable" id="jdDisplay">0.0</div>
+            <span class="scientific-label" id="jdLabel">Julian Date (JD)</span>
+            <div class="spinner-wrapper" data-spinner="jd">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="jd" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" data-step="1">
+              <button class="spinner-btn plus" type="button">&plus;</button>
+            </div>
           </div>
           <div class="scientific-item">
-            <span class="scientific-label">Mod. Julian Date (MJD)</span>
-            <div class="info-value copyable" id="mjdDisplay">0.0</div>
-          </div>
-          <div class="scientific-item">
-            <span class="scientific-label">Atomic Time (TAI)</span>
-            <div class="info-value copyable" id="taiDisplay">0.0</div>
+            <span class="scientific-label" id="mjdLabel">Mod. Julian Date (MJD)</span>
+            <div class="spinner-wrapper" data-spinner="mjd">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="mjd" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
+                data-step="1">
+              <button class="spinner-btn plus" type="button">&plus;</button>
+            </div>
           </div>
         </div>
       </section>
 
 
-      <!-- RINEX Section -->
+      <!-- RINEX Timestamps -->
       <section class="section-card">
-        <h2 class="section-title">RINEX 3.0 Timestamp</h2>
-        <div class="input-group">
-          <div class="info-value" id="rinexDisplay"
-            style="font-family: 'Courier New', monospace; font-size: 1rem; letter-spacing: -0.5px;">
-            Initializing...
+        <h2 class="section-title">RINEX Timestamps</h2>
+        <div class="scientific-stack">
+          <div class="scientific-item">
+            <span class="scientific-label">RINEX 3.0</span>
+            <div class="info-value copyable" id="rinexDisplay" style="letter-spacing: -0.5px;">
+              Initializing...
+            </div>
+          </div>
+          <div class="scientific-item">
+            <span class="scientific-label">RINEX 2.11</span>
+            <div class="info-value copyable" id="rinex2Display" style="letter-spacing: -0.5px;">
+              Initializing...
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="section-card">
-        <h2 class="section-title">Standardized Notation</h2>
-        <div class="info-value copyable" id="fullDateDisplay" style="font-size: 1rem;">
-          Initializing...</div>
-      </section>
+
 
 
 
@@ -1165,21 +1226,45 @@
     }
 
     function setScientificTimes(unixTime) {
+      const isUtc = $('useLeapSeconds').checked;
       const adjustedTime = getAdjustedTime(unixTime);
+
+      // Update labels with prefix
+      const prefix = isUtc ? "UTC " : "GPS ";
+      $('jdLabel').textContent = prefix + "Julian Date (JD)";
+      $('mjdLabel').textContent = prefix + "Mod. Julian Date (MJD)";
 
       // JD = (Unix Time / 86400000) + 2440587.5
       const jd = (adjustedTime / 86400000) + 2440587.5;
       const mjd = jd - 2400000.5;
-      $('jdDisplay').textContent = jd.toFixed(6);
-      $('mjdDisplay').textContent = mjd.toFixed(6);
+      $('jd').value = jd.toFixed(6);
+      $('mjd').value = mjd.toFixed(6);
+    }
 
+    function setTimestamps(unixTime) {
+      // UTC
+      const utcTime = unixTime - leapMillisecondsForUnixTime(unixTime);
+      const isLeap = isDuringLeapSecond(unixTime);
+      const utcDate = new Date(isLeap ? utcTime - 1000 : utcTime);
+      let utcStr = utcDate.toISOString().replace('Z', '').replace('T', ' ');
+      if (isLeap) {
+        utcStr = utcStr.replace(/:\d{2}\./, ':60.');
+      }
+      $('utcTimeDisplay').textContent = utcStr + " UTC";
+
+      // GPS
+      const gpsMs = unixTime - leapMillisecondsForUnixTime(gpsT0);
+      const gpsDate = new Date(gpsMs);
+      $('gpsTimeDisplay').textContent = gpsDate.toISOString().replace('Z', '').replace('T', ' ') + " GPS";
+
+      // TAI
       // TAI was UTC + 10s at 1972-01-01. Thus, TAI is also 10 seconds ahead of 
       // unix time since 1970-01-01. 
       // Since that epoch and the start of GPS there were 10 leap seconds added. 
       // So TAI = GPS + 19s
       const taiTime = unixTime + 10000;
       const taiDate = new Date(taiTime);
-      $('taiDisplay').textContent = taiDate.toISOString();
+      $('taiTimeDisplay').textContent = taiDate.toISOString().replace('Z', '').replace('T', ' ') + " TAI";
     }
 
     function setRolloverInfo(unixTime) {
@@ -1221,10 +1306,8 @@
 
         if (isLeap) {
           $('seconds').value = date.getUTCSeconds() + 1;
-          $('fullDateDisplay').textContent = "During leap second insertion...";
         } else {
           $('seconds').value = date.getUTCSeconds();
-          $('fullDateDisplay').textContent = date.toUTCString().replace("GMT", "UTC");
         }
 
       } else {
@@ -1239,7 +1322,6 @@
         $('hours').value = date.getUTCHours();
         $('minutes').value = date.getUTCMinutes();
         $('seconds').value = date.getUTCSeconds();
-        $('fullDateDisplay').textContent = date.toUTCString().replace("GMT", "GPS");
       }
 
       $('leapSecondsDisplay').textContent = leapMillisecondsForUnixTime(unixTime) / 1000;
@@ -1268,7 +1350,7 @@
       const daysInYear = (yearEnd - yearStart) / (86400 * 1000);
       const daysIntoYear = (time - yearStart) / (86400 * 1000);
       const epoch = (date.getUTCFullYear() + daysIntoYear / daysInYear).toFixed(3);
-      $('epochDisplay').textContent = epoch;
+      $('epoch').value = epoch;
     }
 
     /**
@@ -1282,17 +1364,24 @@
     function setRinexTime(unixTime) {
       const date = new Date(unixTime - leapMillisecondsForUnixTime(gpsT0));
 
-      const y = date.getUTCFullYear();
-      const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-      const d = String(date.getUTCDate()).padStart(2, '0');
-      const h = String(date.getUTCHours()).padStart(2, '0');
-      const min = String(date.getUTCMinutes()).padStart(2, '0');
+      const Y = date.getUTCFullYear();
+      const M = date.getUTCMonth() + 1;
+      const D = date.getUTCDate();
+      const h = date.getUTCHours();
+      const m = date.getUTCMinutes();
+      const s = date.getUTCSeconds() + (date.getUTCMilliseconds() / 1000);
 
-      const sVal = date.getUTCSeconds() + (date.getUTCMilliseconds() / 1000);
-      const sStr = sVal.toFixed(7).padStart(10, '0');
+      const f2 = (v) => String(v).padStart(2, '0');
+      const f3 = (v) => String(v).padStart(3, ' ');
 
-      const rinexStr = `> ${y} ${m} ${d} ${h} ${min} ${sStr}`;
-      $('rinexDisplay').textContent = rinexStr;
+      // RINEX 3.0: "> YYYY MM DD HH MM SS.SSSSSSS"
+      const sStr3 = s.toFixed(7).padStart(10, '0');
+      $('rinexDisplay').textContent = `> ${Y} ${f2(M)} ${f2(D)} ${f2(h)} ${f2(m)} ${sStr3}`;
+
+      // RINEX 2.11: " YY MM DD HH MM SS.SSSSSSS"
+      const yy = String(Y).slice(-2).padStart(2, ' ');
+      const sStr2 = s.toFixed(7).padStart(11, ' ');
+      $('rinex2Display').textContent = `${yy}${f3(M)}${f3(D)}${f3(h)}${f3(m)}${sStr2}`;
     }
 
     /**
@@ -1305,6 +1394,7 @@
       setGalileoTime(time);
       setGlonassTime(time);
       setScientificTimes(time);
+      setTimestamps(time);
       setRolloverInfo(time);
       setCalendarTime(time);
       setDOYTime(time);
@@ -1355,6 +1445,29 @@
 
     function onUnixTime() {
       setTime(parseInt($('unix').value) * 1000);
+    }
+
+    function onEpochTime() {
+      const epoch = parseFloat($('epoch').value) || 0;
+      const year = Math.floor(epoch);
+      const fraction = epoch - year;
+      const yearStart = Date.UTC(year, 0, 1);
+      const yearEnd = Date.UTC(year + 1, 0, 1);
+      const durationOfYear = (yearEnd - yearStart);
+      setTime(yearStart + fraction * durationOfYear);
+    }
+
+    function onJDTime() {
+      const jd = parseFloat($('jd').value) || 0;
+      const adjustedTime = (jd - 2440587.5) * 86400000;
+      setTime(unixTimeFromAdjustedTime(adjustedTime));
+    }
+
+    function onMJDTime() {
+      const mjd = parseFloat($('mjd').value) || 0;
+      const jd = mjd + 2400000.5;
+      const adjustedTime = (jd - 2440587.5) * 86400000;
+      setTime(unixTimeFromAdjustedTime(adjustedTime));
     }
 
     function onGalileoTime() {
@@ -1461,6 +1574,9 @@
 
       $('doy').onchange = onDoyTime;
       $('unix').onchange = onUnixTime;
+      $('epoch').onchange = onEpochTime;
+      $('jd').onchange = onJDTime;
+      $('mjd').onchange = onMJDTime;
       $('gstWeek').onchange = onGalileoTime;
       $('gstTOW').onchange = onGalileoTime;
       $('gloHours').onchange = onGlonassTime;
@@ -1512,7 +1628,6 @@
       $('copyAllBtn').onclick = () => {
         const data = {
           utc: {
-            timestamp: $('fullDateDisplay').textContent.trim(),
             year: $('year').value,
             month: parseInt($('month').value) + 1,
             day: $('day').value,
@@ -1524,13 +1639,18 @@
           glonass: { hours: $('gloHours').value, seconds: $('gloSeconds').value, offset: $('gloOffsetDisplay').textContent },
           unix: $('unix').value,
           doy: $('doy').value,
-          decimal_epoch: $('epochDisplay').textContent,
-          scientific: {
-            jd: $('jdDisplay').textContent,
-            mjd: $('mjdDisplay').textContent,
-            tai: $('taiDisplay').textContent
+          decimal_epoch: $('epoch').value,
+          timestamps: {
+            utc: $('utcTimeDisplay').textContent,
+            gps: $('gpsTimeDisplay').textContent,
+            tai: $('taiTimeDisplay').textContent
           },
-          rinex: $('rinexDisplay').textContent,
+          scientific: {
+            jd: $('jd').value,
+            mjd: $('mjd').value
+          },
+          rinex3: $('rinexDisplay').textContent,
+          rinex2: $('rinex2Display').textContent,
           leap_seconds_total: $('leapSecondsDisplay').textContent
         };
         copyToClipboard(JSON.stringify(data, null, 2));
