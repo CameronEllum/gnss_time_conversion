@@ -4,7 +4,7 @@ A single file HTML utility for converting between various Global Navigation Sate
 
 [View the GNSS Time Converter](https://cameronellum.github.io/gnss_time_conversion/)
 
-## 🚀 Basic Functionality
+## Basic Functionality
 
 - **GNSS Time Scales**: Bidirectional conversion for GPS, BeiDou (BDS), Galileo (GST), and GLONASS.
 - **Scientific Formats**: Support for Julian Date (JD), Modified Julian Date (MJD), and Atomic Time (TAI).
