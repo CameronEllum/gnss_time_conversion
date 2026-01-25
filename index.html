@@ -185,9 +185,12 @@
     }
 
     label {
-      font-size: 0.875rem;
+      display: block;
+      font-size: 0.8rem;
       font-weight: 600;
       color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.02em;
     }
 
     .spinner-wrapper {
@@ -342,25 +345,6 @@
       }
     }
 
-    /* New Styles */
-    .scientific-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .scientific-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    .scientific-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: none;
-    }
 
     .copy-toast {
       position: fixed;
@@ -443,6 +427,10 @@
       font-style: italic;
       margin-top: 0.25rem;
       display: block;
+    }
+
+    .verification-row:hover {
+      background: var(--hover-bg);
     }
   </style>
 </head>
@@ -666,19 +654,17 @@
       <!-- Timestamps -->
       <section class="section-card">
         <h2 class="section-title">Timestamps</h2>
-        <div class="scientific-stack">
-          <div class="scientific-item">
-            <span class="scientific-label">UTC Date/Time</span>
-            <div class="info-value copyable" id="utcTimeDisplay">...</div>
-          </div>
-          <div class="scientific-item">
-            <span class="scientific-label">GPS Date/Time</span>
-            <div class="info-value copyable" id="gpsTimeDisplay">...</div>
-          </div>
-          <div class="scientific-item">
-            <span class="scientific-label">TAI Date/Time</span>
-            <div class="info-value copyable" id="taiTimeDisplay">...</div>
-          </div>
+        <div class="input-group">
+          <label>UTC Date/Time</label>
+          <div class="info-value copyable" id="utcTimeDisplay">...</div>
+        </div>
+        <div class="input-group">
+          <label>GPS Date/Time</label>
+          <div class="info-value copyable" id="gpsTimeDisplay">...</div>
+        </div>
+        <div class="input-group">
+          <label>TAI Date/Time</label>
+          <div class="info-value copyable" id="taiTimeDisplay">...</div>
         </div>
       </section>
 
@@ -721,23 +707,20 @@
       <!-- Astronomic Times -->
       <section class="section-card">
         <h2 class="section-title">Astronomic Times</h2>
-        <div class="scientific-stack">
-          <div class="scientific-item">
-            <span class="scientific-label" id="jdLabel">Julian Date (JD)</span>
-            <div class="spinner-wrapper" data-spinner="jd">
-              <button class="spinner-btn minus" type="button">&minus;</button>
-              <input type="text" id="jd" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" data-step="1">
-              <button class="spinner-btn plus" type="button">&plus;</button>
-            </div>
+        <div class="input-group">
+          <label id="jdLabel" for="jd">Julian Date (JD)</label>
+          <div class="spinner-wrapper" data-spinner="jd">
+            <button class="spinner-btn minus" type="button">&minus;</button>
+            <input type="text" id="jd" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" data-step="1">
+            <button class="spinner-btn plus" type="button">&plus;</button>
           </div>
-          <div class="scientific-item">
-            <span class="scientific-label" id="mjdLabel">Mod. Julian Date (MJD)</span>
-            <div class="spinner-wrapper" data-spinner="mjd">
-              <button class="spinner-btn minus" type="button">&minus;</button>
-              <input type="text" id="mjd" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*"
-                data-step="1">
-              <button class="spinner-btn plus" type="button">&plus;</button>
-            </div>
+        </div>
+        <div class="input-group">
+          <label id="mjdLabel" for="mjd">Mod. Julian Date (MJD)</label>
+          <div class="spinner-wrapper" data-spinner="mjd">
+            <button class="spinner-btn minus" type="button">&minus;</button>
+            <input type="text" id="mjd" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" data-step="1">
+            <button class="spinner-btn plus" type="button">&plus;</button>
           </div>
         </div>
       </section>
@@ -746,18 +729,16 @@
       <!-- RINEX Timestamps -->
       <section class="section-card">
         <h2 class="section-title">RINEX Timestamps</h2>
-        <div class="scientific-stack">
-          <div class="scientific-item">
-            <span class="scientific-label">RINEX 3.0</span>
-            <div class="info-value copyable" id="rinexDisplay" style="letter-spacing: -0.5px;">
-              Initializing...
-            </div>
+        <div class="input-group">
+          <label>RINEX 3.0</label>
+          <div class="info-value copyable" id="rinexDisplay" style="letter-spacing: -0.5px;">
+            Initializing...
           </div>
-          <div class="scientific-item">
-            <span class="scientific-label">RINEX 2.11</span>
-            <div class="info-value copyable" id="rinex2Display" style="letter-spacing: -0.5px;">
-              Initializing...
-            </div>
+        </div>
+        <div class="input-group">
+          <label>RINEX 2.11</label>
+          <div class="info-value copyable" id="rinex2Display" style="letter-spacing: -0.5px;">
+            Initializing...
           </div>
         </div>
       </section>
@@ -780,7 +761,7 @@
           onclick="document.getElementById('testCard').style.display='none'" title="Click to hide">System Integrity
           Verification</h2>
         <div id="testOutput"
-          style="overflow-x: auto; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--card-border);">
+          style="overflow-x: auto; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--card-border);">
         </div>
       </section>
 
@@ -792,13 +773,13 @@
         <div class="input-group" style="padding: 1rem; border-bottom: 1px solid var(--card-border); margin-bottom: 0;">
           <label for="testCaseSelect">Select Test Case</label>
           <select id="testCaseSelect" class="form-input"
-            style="background: rgba(0,0,0,0.2); border: 1px solid var(--input-border); color: var(--text-primary); margin-top: 0.5rem;"
+            style="background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-primary); margin-top: 0.5rem;"
             onchange="updateComponentTests()">
             <option value="all">Run All Cases</option>
           </select>
         </div>
         <div id="componentTestOutput"
-          style="overflow-x: auto; background: rgba(0,0,0,0.4); border-radius: 12px; border: 1px solid var(--card-border);">
+          style="overflow-x: auto; background: var(--input-bg); border-radius: 12px; border: 1px solid var(--card-border);">
         </div>
       </section>
 
@@ -928,16 +909,14 @@
 
       // Build Report Table
       let html = '<table style="width:100%; min-width: 650px; border-collapse: collapse; font-family: inherit; color: var(--text-primary);">';
-      html += '<thead style="background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--accent-color);">';
+      html += '<thead style="background: var(--muted-bg); border-bottom: 2px solid var(--accent-color);">';
       html += '<tr><th style="padding: 0.5rem 1rem; text-align: left;">Category</th><th style="padding: 0.5rem 1rem; text-align: left;">Input Value</th>';
       html += '<th style="padding: 0.5rem 1rem; text-align: left;">Target</th><th style="padding: 0.5rem 1rem; text-align: left;">System Result</th><th style="padding: 0.5rem 1rem; text-align: center;">Status</th></tr></thead><tbody>';
 
       results.forEach(r => {
         const statusColor = r.pass ? "#10b981" : "#ef4444";
         const statusText = r.pass ? "PASSED" : "FAILED";
-        html += `<tr style="border-bottom: 1px solid var(--card-border); transition: background 0.2s; cursor: pointer;" 
-                    onmouseover="this.style.background='rgba(255,255,255,0.02)'" 
-                    onmouseout="this.style.background='transparent'"
+        html += `<tr class="verification-row" style="border-bottom: 1px solid var(--card-border); transition: var(--transition); cursor: pointer;" 
                     onclick="setTime(${r.time}); window.scrollTo({top: 0, behavior: 'smooth'});"
                     title="Click to set application time to this case">`;
         html += `<td style="padding: 0.4rem 1rem; font-weight: 600; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">${r.type}</td>`;
@@ -1104,7 +1083,7 @@
       });
 
       let html = '<table style="width:100%; border-collapse: collapse; font-family: inherit; color: var(--text-primary);">';
-      html += '<thead style="background: rgba(255,255,255,0.05); border-bottom: 2px solid var(--accent-color);">';
+      html += '<thead style="background: var(--muted-bg); border-bottom: 2px solid var(--accent-color);">';
       html += '<tr><th style="padding: 0.5rem 1rem; text-align: left;">Test Scenario</th><th style="padding: 0.5rem 1rem; text-align: left;">Element ID</th>';
       html += '<th style="padding: 0.5rem 1rem; text-align: left;">Expected Value</th><th style="padding: 0.5rem 1rem; text-align: left;">Component Value</th><th style="padding: 0.5rem 1rem; text-align: center;">Status</th></tr></thead><tbody>';
 
@@ -1149,7 +1128,7 @@
           <h3 style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--card-border); padding-bottom: 0.25rem;">${title}</h3>`;
         links.forEach(l => {
           groupHtml +=
-            `<a href="${l.url}" target="_blank" style="display: block; padding: 0.6rem 0.75rem; background: var(--input-bg); color: var(--accent-color); text-decoration: none; border-radius: 6px; margin-bottom: 0.4rem; transition: background 0.2s; font-size: 0.9rem; border: 1px solid var(--input-border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--input-bg)'">
+            `<a href="${l.url}" data-group="${title}" target="_blank" style="display: block; padding: 0.6rem 0.75rem; background: var(--input-bg); color: var(--accent-color); text-decoration: none; border-radius: 6px; margin-bottom: 0.4rem; transition: background 0.2s; font-size: 0.9rem; border: 1px solid var(--input-border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--input-bg)'">
               ${l.name} <span style="float: right; opacity: 0.7;">&nearr;</span>
             </a>`;
         });
@@ -1843,9 +1822,8 @@
         if (currentThemeSource === 'system') updateTheme();
       });
 
-      // Setup Copy All Button
-      $('copyAllBtn').onclick = () => {
-        const data = {
+      function getSystemState() {
+        return {
           utc: {
             year: $('year').value,
             month: parseInt($('month').value) + 1,
@@ -1872,48 +1850,94 @@
           rinex2: $('rinex2Display').textContent,
           leap_seconds_total: $('leapSecondsDisplay').textContent
         };
-        copyToClipboard(JSON.stringify(data, null, 2));
+      }
+
+
+      // Setup Copy All Button
+      $('copyAllBtn').onclick = () => {
+        copyToClipboard(JSON.stringify(getSystemState(), null, 2));
       };
 
 
       // Setup Ctrl+Click to Copy Section
       document.addEventListener('click', (e) => {
         if (e.ctrlKey) {
+          // 1. Ignore if it's the main title (handled by secret test toggle)
           if (e.target.closest('#mainTitle')) return;
 
+          // 2. If clicking a link with an href (like IGS references), copy just the URL
+          const link = e.target.closest('a[href]');
+          if (link) {
+            copyToClipboard(link.href);
+            flashElement(link);
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+
+          // 3. If clicking inside an input or info box, copy JUST the value
+          const valueElement = e.target.closest('input, select, .info-value');
+          if (valueElement) {
+            const val = valueElement.tagName === 'SELECT' ? valueElement.options[valueElement.selectedIndex].text : (valueElement.value || valueElement.textContent.trim());
+            copyToClipboard(val);
+            flashElement(valueElement);
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+
+          // 3. If clicking inside a section card, copy section JSON
           const section = e.target.closest('.section-card');
-          if (!section) return;
+          if (section) {
+            const sectionTitle = section.querySelector('.section-title')?.textContent?.trim() || "Time Data";
+            const data = {};
 
-          const sectionTitle = section.querySelector('.section-title')?.textContent?.trim() || "Time Data";
-          const data = {};
+            section.querySelectorAll('label').forEach(label => {
+              const labelText = label.textContent.replace(/:$/, '').trim();
+              if (!labelText) return;
 
-          section.querySelectorAll('.input-group').forEach(group => {
-            const labelText = group.querySelector('label')?.textContent?.replace(/:$/, '').trim();
-            const input = group.querySelector('input, select');
-            const info = group.querySelector('.info-value');
-
-            if (labelText) {
-              if (input) {
-                data[labelText] = input.tagName === 'SELECT' ? input.options[input.selectedIndex].text : input.value;
-              } else if (info) {
-                data[labelText] = info.textContent.trim();
+              let val = null;
+              const targetId = label.getAttribute('for');
+              if (targetId) {
+                const el = $(targetId);
+                if (el) val = el.tagName === 'SELECT' ? el.options[el.selectedIndex].text : el.value;
               }
-            }
-          });
 
-          // Also check for scientific grid items if applicable
-          section.querySelectorAll('.scientific-item').forEach(item => {
-            const label = item.querySelector('.scientific-label')?.textContent?.trim();
-            const value = item.querySelector('.info-value')?.textContent?.trim();
-            if (label && value) data[label] = value;
-          });
+              if (val === null) {
+                const group = label.closest('.input-group') || label.parentElement;
+                const input = group.querySelector('input, select');
+                const info = group.querySelector('.info-value');
+                if (input) val = input.tagName === 'SELECT' ? input.options[input.selectedIndex].text : input.value;
+                else if (info) val = info.textContent.trim();
+              }
 
-          const rollover = section.querySelector('.rollover-indicator');
-          if (rollover) data["Status/Info"] = rollover.textContent.trim();
+              if (val !== null) data[labelText] = val;
+            });
 
-          copyToClipboard(JSON.stringify({ source: sectionTitle, values: data }, null, 2));
-          flashElement(section);
+            // 4. Scrape all links (excluding the global copy button)
+            section.querySelectorAll('a[href]:not(.copy-all-btn)').forEach(link => {
+              const text = link.textContent.replace(/[↗↖↗↘]/g, '').trim();
+              const subHeader = link.dataset.group;
+              const key = subHeader ? `${subHeader}: ${text}` : text;
+              if (text) data[key] = link.href;
+            });
 
+            const rollover = section.querySelector('.rollover-indicator');
+            if (rollover) data["Status/Info"] = rollover.textContent.trim();
+
+            copyToClipboard(JSON.stringify({
+              source: sectionTitle,
+              values: data
+            }, null, 2));
+            flashElement(section);
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+          }
+
+          // 4. If clicking anywhere else on the page (background), copy ALL as JSON
+          copyToClipboard(JSON.stringify(getSystemState(), null, 2));
+          showToast();
           e.preventDefault();
           e.stopPropagation();
         }
