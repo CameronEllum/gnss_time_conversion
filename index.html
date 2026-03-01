@@ -500,7 +500,7 @@
               <button class="spinner-btn plus" type="button">&plus;</button>
             </div>
           </div>
-          <div class="input-group" style="grid-column: span 2;">
+          <div class="input-group">
             <label for="month">Month</label>
             <div class="spinner-wrapper">
               <select id="month" class="form-input">
@@ -519,8 +519,6 @@
               </select>
             </div>
           </div>
-        </div>
-        <div class="time-group-3">
           <div class="input-group">
             <label for="day">Day</label>
             <div class="spinner-wrapper" data-spinner="day">
@@ -529,6 +527,8 @@
               <button class="spinner-btn plus" type="button">&plus;</button>
             </div>
           </div>
+        </div>
+        <div class="time-group-3">
           <div class="input-group">
             <label for="hours">Hour</label>
             <div class="spinner-wrapper" data-spinner="hours">
@@ -545,15 +545,19 @@
               <button class="spinner-btn plus" type="button">&plus;</button>
             </div>
           </div>
+          <div class="input-group">
+            <label for="seconds">Seconds</label>
+            <div class="spinner-wrapper" data-spinner="seconds">
+              <button class="spinner-btn minus" type="button">&minus;</button>
+              <input type="text" id="seconds" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" min="0"
+                max="61" data-step="1">
+              <button class="spinner-btn plus" type="button">&plus;</button>
+            </div>
+          </div>
         </div>
         <div class="input-group">
-          <label for="seconds">Seconds (UTC)</label>
-          <div class="spinner-wrapper" data-spinner="seconds">
-            <button class="spinner-btn minus" type="button">&minus;</button>
-            <input type="text" id="seconds" class="form-input" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" min="0"
-              max="61" data-step="1">
-            <button class="spinner-btn plus" type="button">&plus;</button>
-          </div>
+          <label>UTC Leap Seconds (Total)</label>
+          <div class="info-value copyable" id="leapSecondsDisplay">0</div>
         </div>
       </section>
 
@@ -698,10 +702,6 @@
             <input type="text" id="unix" class="form-input" inputmode="numeric" pattern="[0-9]*" data-step="1">
             <button class="spinner-btn plus" type="button">&plus;</button>
           </div>
-        </div>
-        <div class="input-group">
-          <label>UTC Leap Seconds (Total)</label>
-          <div class="info-value copyable" id="leapSecondsDisplay">0</div>
         </div>
       </section>
 
@@ -1226,17 +1226,18 @@
       /* 27 */ decemberLeap(2016),
     ];
 
-    // These are in unix time
+    // These are the time points in monotonic unix time
     const gpsT0 = Date.UTC(1980, 0, 6) + 9000; // 9 leap seconds have occurred between 1970 and 1980
-    const bdsT0 = Date.UTC(2006, 0, 1) + 22000; // BDS epoch is typically Jan 1, 2006 00:00:14 GPS (or 00:00:00 UTC)
+    const bdsT0 = Date.UTC(2006, 0, 1) + 22000; // BDS epoch is Jan 1, 2006 00:00:14 GPS (or 00:00:00 UTC)
     const gstT0 = gpsT0 + (1024 * 604800000); // Galileo System Time starts 1024 weeks after GPS
 
     /*
 
     General Idea:
     - We have one time, which is the number of milliseconds since the Unix epoch
-      1970-01-01 00:00:00 UTC.
+      1970-01-01 00:00:00 UTC. 
     - This is a monotonic time scale; it has no leap seconds.
+    - We call this "monotonic unix time".
     - When converting from this time, we have to account for leap seconds.
       - For UTC, we have to account for the leap seconds that have occurred 
         since the Unix epoch. This means subtracting 
@@ -1297,15 +1298,24 @@
       return leapSecondsForUnixTime(t) * 1000;
     }
 
+    // "Adjusted Time" is the time scale currently being used for display in the
+    // Calendar and Astronomic sections.
+
     function getAdjustedTime(time) {
       return $('useLeapSeconds').checked
+        // Adapt the monotonic unix time for leap seconds by subtracting all the
+        // leap seconds that have occurred since 1970 to get the UTC date.
         ? (time - leapMillisecondsForUnixTime(time))
+        // Adapt the monotonic unix time for leap seconds by subtracting only the
+        // initial 9s (offset at the 1980 epoch) to get a GPS Calendar-like scale.
         : (time - leapMillisecondsForUnixTime(gpsT0));
     }
 
     function unixTimeFromAdjustedTime(time) {
       return $('useLeapSeconds').checked
-        ? (time + leapMillisecondsForUnixTime(time))
+        /* Perform the complex iterative conversion from visual UTC back to monotonic TAI-like scale. */
+        ? unixTimeFromUTCTime(time)
+        /* Just add the constant 9s offset to go from visual GPS back to the internal monotonic scale. */
         : (time + leapMillisecondsForUnixTime(gpsT0));
     }
 
@@ -1501,10 +1511,11 @@
      * @param {number} time - Monotonic Unix timestamp in milliseconds.
      */
     function setDOYTime(time) {
-      const date = new Date(getAdjustedTime(time));
+      const adjustedTime = getAdjustedTime(time);
+      const date = new Date(adjustedTime);
       const yearStart = Date.UTC(date.getUTCFullYear(), 0, 1);
-      const daysInYear = (time - yearStart) / (86400 * 1000);
-      $('doy').value = daysInYear.toFixed(3);
+      const doy = (adjustedTime - yearStart) / 86400000;
+      $('doy').value = doy.toFixed(3);
     }
 
     /**
@@ -1512,13 +1523,13 @@
      * @param {number} time - Monotonic Unix timestamp in milliseconds.
      */
     function setEpochTime(time) {
-      const date = new Date(time);
-      const yearEnd = Date.UTC(date.getUTCFullYear() + 1, 0, 1);
+      const adjustedTime = getAdjustedTime(time);
+      const date = new Date(adjustedTime);
       const yearStart = Date.UTC(date.getUTCFullYear(), 0, 1);
-      const daysInYear = (yearEnd - yearStart) / (86400 * 1000);
-      const daysIntoYear = (time - yearStart) / (86400 * 1000);
-      const epoch = (date.getUTCFullYear() + daysIntoYear / daysInYear).toFixed(3);
-      $('epoch').value = epoch;
+      const yearEnd = Date.UTC(date.getUTCFullYear() + 1, 0, 1);
+      const durationOfYear = (yearEnd - yearStart);
+      const epoch = date.getUTCFullYear() + (adjustedTime - yearStart) / durationOfYear;
+      $('epoch').value = epoch.toFixed(6);
     }
 
     /**
@@ -1597,23 +1608,18 @@
         $('minutes').value,
         $('seconds').value
       );
-
-      const useLeaps = $('useLeapSeconds').checked;
-      if (useLeaps) {
-        setTime(unixTimeFromUTCTime(time));
-      } else {
-        setTime(time);
-      }
+      setTime(unixTimeFromAdjustedTime(time));
     }
 
     function onDoyTime() {
-      const time = Date.UTC($('year').value, 0, 1);
-      setTime(time + parseFloat($('doy').value) * 86400000);
+      const yearStart = Date.UTC($('year').value, 0, 1);
+      const adjustedTime = yearStart + parseFloat($('doy').value) * 86400000;
+      setTime(unixTimeFromAdjustedTime(adjustedTime));
     }
 
     function onUnixTime() {
-      const utc = parseInt($('unix').value) * 1000;
-      setTime(unixTimeFromUTCTime(utc));
+      const ms = (parseFloat($('unix').value) || 0) * 1000;
+      setTime(ms);
     }
 
     function onEpochTime() {
@@ -1623,7 +1629,8 @@
       const yearStart = Date.UTC(year, 0, 1);
       const yearEnd = Date.UTC(year + 1, 0, 1);
       const durationOfYear = (yearEnd - yearStart);
-      setTime(yearStart + fraction * durationOfYear);
+      const adjustedTime = yearStart + fraction * durationOfYear;
+      setTime(unixTimeFromAdjustedTime(adjustedTime));
     }
 
     function onJDTime() {
@@ -1651,7 +1658,9 @@
       const secondsInDay = parseFloat($('gloSeconds').value) || 0;
       // GLONASS is UTC+3h. We need to find the day start in UTC.
       // Easiest is to work from existing unix time to get the date.
-      const now = new Date(parseInt($('unix').value) * 1000);
+      const monotonicMs = (parseFloat($('unix').value) || 0) * 1000;
+      const utcMs = monotonicMs - leapMillisecondsForUnixTime(monotonicMs);
+      const now = new Date(utcMs);
       const startOfDayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
       // GLO time is UTC+3h, so GLO Hours 0 is UTC 21:00 previous day or similar.
       // But usually user just means "current day".
