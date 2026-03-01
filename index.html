@@ -85,6 +85,44 @@
       stroke-linejoin: round;
     }
 
+    .bug-report {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-primary);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      text-decoration: none;
+      z-index: 1000;
+    }
+
+    .bug-report:hover {
+      background: var(--card-border);
+      transform: scale(1.1);
+      color: #ef4444;
+    }
+
+    .bug-report svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transform: rotate(45deg);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -445,6 +483,13 @@
 
   <div class="container">
     <header style="position: relative;">
+      <a href="mailto:cmellum@gmail.com?subject=GNSS%20Time%20Converter%20Bug%20Report" class="bug-report"
+        title="Report a bug">
+        <svg viewBox="0 0 24 24">
+          <path d="M8 6a4 4 0 0 1 8 0v10a4 4 0 0 1-8 0V6z"></path>
+          <path d="M19 7l-3 2m3 10l-3-2m-4-11V3m4 4l3-3m-11 3L4 4m0 9h4m8 0h4m-12 6l-3 2"></path>
+        </svg>
+      </a>
       <button id="themeToggle" class="theme-toggle" aria-label="Toggle Theme" title="Toggle Theme">
         <!-- Icon will be injected by JS -->
       </button>
@@ -1651,6 +1696,13 @@
       setUnixTime(time);
       setRinexTime(time);
       setLinksTime(time);
+
+      // Update URL hash persistence
+      const unixSec = (time / 1000).toFixed(3);
+      const hashContent = `#unix=${unixSec}`;
+      if (window.location.hash !== hashContent) {
+        window.history.replaceState(null, null, hashContent);
+      }
     }
 
 
@@ -1785,8 +1837,22 @@
      */
     let autoUpdateActive = true;
     document.addEventListener('DOMContentLoaded', () => {
-      // Initialize with current time rounded to integer seconds
-      setTime(Math.floor(Date.now() / 1000) * 1000);
+      // Initialize with time from hash or current time
+      const hash = window.location.hash;
+      const unixMatch = hash.match(/unix=([\d.]+)/);
+
+      if (unixMatch) {
+        const unixSeconds = parseFloat(unixMatch[1]);
+        if (!isNaN(unixSeconds)) {
+          // If a specific time is linked, start in manual mode
+          autoUpdateActive = false;
+          setTime(unixSeconds * 1000);
+        } else {
+          setTime(Math.floor(Date.now() / 1000) * 1000);
+        }
+      } else {
+        setTime(Math.floor(Date.now() / 1000) * 1000);
+      }
 
       // Auto-update every second until manual interaction
       const autoUpdateInterval = setInterval(() => {
